@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaludPro - Detalle del día</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#1c1c1a",
+                        "on-primary-container": "#e4eeff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#ededf3",
+                        "surface-tint": "#2b6197",
+                        "secondary-container": "#e2dfdd",
+                        "on-background": "#191c1f",
+                        "surface-dim": "#d9dadf",
+                        "on-tertiary-container": "#ffebce",
+                        "error-container": "#ffdad6",
+                        "primary": "#1b558b",
+                        "surface-container-low": "#f3f3f8",
+                        "outline-variant": "#c2c7d1",
+                        "on-tertiary-fixed": "#271900",
+                        "inverse-on-surface": "#f0f0f5",
+                        "surface-container-high": "#e7e8ed",
+                        "tertiary-fixed-dim": "#f3be5e",
+                        "outline": "#727780",
+                        "on-surface": "#191c1f",
+                        "on-error": "#ffffff",
+                        "surface": "#f9f9fe",
+                        "on-primary-fixed-variant": "#02497e",
+                        "surface-bright": "#f9f9fe",
+                        "tertiary-fixed": "#ffdea9",
+                        "on-secondary-fixed-variant": "#474745",
+                        "on-primary-fixed": "#001c37",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#5e4100",
+                        "on-secondary-container": "#636261",
+                        "primary-container": "#3a6ea5",
+                        "primary-fixed-dim": "#9fcaff",
+                        "tertiary-container": "#8d6404",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#2e3034",
+                        "background": "#f9f9fe",
+                        "inverse-primary": "#9fcaff",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5f5e5d",
+                        "surface-variant": "#e2e2e7",
+                        "secondary-fixed": "#e5e2e0",
+                        "on-surface-variant": "#42474f",
+                        "primary-fixed": "#d2e4ff",
+                        "secondary-fixed-dim": "#c9c6c4",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary": "#6e4d00",
+                        "surface-container-highest": "#e2e2e7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "card-padding": "20px",
+                        "titlebar-height": "44px",
+                        "card-gap": "16px",
+                        "base": "8px",
+                        "sidebar-width": "200px"
+                    },
+                    "fontFamily": {
+                        "body": ["Inter"],
+                        "label-muted": ["Inter"],
+                        "section-title": ["Inter"],
+                        "card-value": ["Inter"],
+                        "hero-num": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-muted": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                        "section-title": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "card-value": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "hero-num": ["56px", {"lineHeight": "64px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .masonry-grid {
+            column-count: 1;
+            column-gap: 16px;
+        }
+        @media (min-width: 1024px) {
+            .masonry-grid {
+                column-count: 2;
+            }
+        }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-body text-on-surface antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 right-0 w-[calc(100%-200px)] h-[44px] bg-surface dark:bg-surface-bright border-b border-outline-variant dark:border-outline flex items-center justify-between px-card-padding z-50">
+<div class="font-section-title text-section-title text-on-surface dark:text-inverse-on-surface font-bold tracking-tight">
+            SaludPro
+        </div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="help_outline">help_outline</span>
+</div>
+</nav>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[200px] bg-[#fbfbfa] dark:bg-surface-dim border-r border-outline-variant dark:border-outline flex flex-col py-4 z-50">
+<div class="px-4 mb-8">
+<div class="font-section-title text-section-title font-bold text-on-surface dark:text-inverse-on-surface tracking-tight">SaludPro</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant mt-1">Productividad Clínica</div>
+</div>
+<div class="flex flex-col gap-1 w-full flex-grow">
+<!-- Active Intent Fallback: "Hoy" matches "Día 23" Context -->
+<a class="bg-surface-container dark:bg-surface-container-high border-l-4 border-primary text-on-surface dark:text-inverse-on-surface font-semibold flex items-center gap-3 px-4 py-2 hover:bg-surface-container-low transition-colors opacity-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="today">today</span>
+<span>Hoy</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center gap-3 px-4 py-2 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Historial</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center gap-3 px-4 py-2 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span>Estadísticas</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center gap-3 px-4 py-2 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Ajustes</span>
+</a>
+</div>
+<div class="px-4 mt-auto pt-4 border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A small, professional headshot of a female clinician wearing a white coat, brightly lit against a neutral grey background, corporate and clean aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC3twmuTVjliPLaiOLM1IbrWXd9I3WcvG8kRbxkjWif7wTYlGLDcjMEjdtjEkSLBJa2Q75KJMr40rG1B_MhZ8KsVbro3vu1nEyGX5nr7_6buuwyr12UrDAPKbWWvc7YXzji4Ge3NZ1etK3LuFP6EE0VTWDebVcOo9tmZ0-6UIMGSOC3cCprooiJAGWBta8atdeZFVR9BcrhWG_m1ckvEzx0T8f5Q2_4HiUei2i2YbzDWRVMIJX4ZjgGQ"/>
+</div>
+<div class="font-label-muted text-label-muted">Dra. M. Silva</div>
+</div>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="ml-[200px] mt-[44px] p-card-padding min-h-[calc(100vh-44px)] flex flex-col gap-card-gap">
+<!-- Header Section -->
+<header class="flex items-center justify-between border-b border-outline-variant pb-4 mb-2">
+<div class="flex items-center gap-4">
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex items-center gap-3">
+<h1 class="font-section-title text-section-title text-on-surface">Día 23 · Miércoles 19 de agosto</h1>
+<span class="px-2 py-0.5 rounded-[4px] bg-[#e6f4ea] text-[#137333] font-label-muted text-label-muted border border-[#ceead6]">Completo</span>
+</div>
+</div>
+<button class="px-4 py-2 rounded-DEFAULT border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface font-body text-body transition-colors">
+                Editar día
+            </button>
+</header>
+<!-- Bento Grid / Masonry -->
+<div class="masonry-grid flex-grow w-full">
+<!-- SUEÑO -->
+<div class="masonry-item bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Sueño</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="bedtime">bedtime</span>
+</div>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="font-card-value text-card-value text-on-surface">6 h 40 min</span>
+</div>
+<div class="relative h-4 bg-surface-container rounded-[2px] w-full mb-2">
+<!-- Timeline segment -->
+<div class="absolute left-[10%] right-[30%] h-full bg-primary-container rounded-[2px]"></div>
+</div>
+<div class="flex justify-between font-label-muted text-label-muted text-on-surface-variant">
+<span>23:40</span>
+<span>06:20</span>
+</div>
+</div>
+<!-- COMIDAS -->
+<div class="masonry-item bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Comidas</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="restaurant">restaurant</span>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex items-start gap-4">
+<div class="w-12 font-label-muted text-label-muted text-on-surface-variant tabular-nums pt-0.5">08:30</div>
+<div class="flex-grow">
+<div class="font-body text-body text-on-surface">Avena con bayas y café negro</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">320 kcal</div>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-12 font-label-muted text-label-muted text-on-surface-variant tabular-nums pt-0.5">13:45</div>
+<div class="flex-grow">
+<div class="font-body text-body text-on-surface">Ensalada de pollo a la parrilla</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">450 kcal</div>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-12 font-label-muted text-label-muted text-on-surface-variant tabular-nums pt-0.5">20:15</div>
+<div class="flex-grow">
+<div class="font-body text-body text-on-surface">Salmón al horno con espárragos</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">510 kcal</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AZÚCAR -->
+<div class="masonry-item bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Azúcar</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="water_drop">water_drop</span>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-label-muted text-label-muted text-on-surface-variant mb-1">Ayuno (08:00)</div>
+<div class="flex items-center gap-2">
+<span class="text-[24px] font-semibold text-on-surface leading-none">92</span>
+<span class="font-label-muted text-label-muted text-on-surface-variant">mg/dL</span>
+</div>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 bg-surface-container rounded-[4px]">
+<div class="w-2 h-2 rounded-full bg-[#34a853]"></div>
+<span class="font-label-muted text-label-muted text-on-surface">Normal</span>
+</div>
+</div>
+<div class="w-full h-[1px] bg-outline-variant"></div>
+<div class="flex items-center justify-between">
+<div>
+<div class="font-label-muted text-label-muted text-on-surface-variant mb-1">Post-cena (22:00)</div>
+<div class="flex items-center gap-2">
+<span class="text-[24px] font-semibold text-on-surface leading-none">115</span>
+<span class="font-label-muted text-label-muted text-on-surface-variant">mg/dL</span>
+</div>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 bg-surface-container rounded-[4px]">
+<div class="w-2 h-2 rounded-full bg-[#34a853]"></div>
+<span class="font-label-muted text-label-muted text-on-surface">Normal</span>
+</div>
+</div>
+</div>
+</div>
+<!-- EJERCICIO -->
+<div class="masonry-item bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Ejercicio</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="directions_run">directions_run</span>
+</div>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-[4px] bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="directions_walk">directions_walk</span>
+</div>
+<div>
+<div class="font-body text-body text-on-surface font-medium">Caminata rápida</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">45 min · 320 kcal</div>
+</div>
+</div>
+<div class="inline-flex items-center gap-1 px-2 py-1 bg-surface-container-low border border-outline-variant rounded-[4px] font-label-muted text-label-muted text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]" data-icon="park">park</span>
+                    Al aire libre
+                </div>
+</div>
+<!-- TRABAJO -->
+<div class="masonry-item bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Trabajo</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="work">work</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="font-card-value text-card-value text-on-surface">8.5 h</span>
+</div>
+<!-- Stacked Bar -->
+<div class="flex h-6 w-full rounded-[2px] overflow-hidden mb-3 border border-outline-variant">
+<div class="bg-primary-container h-full" style="width: 45%;"></div>
+<div class="bg-outline h-full" style="width: 35%;"></div>
+<div class="bg-surface-dim h-full" style="width: 20%;"></div>
+</div>
+<div class="flex gap-4 font-label-muted text-label-muted">
+<div class="flex items-center gap-1"><div class="w-2 h-2 bg-primary-container rounded-sm"></div>Clínica</div>
+<div class="flex items-center gap-1"><div class="w-2 h-2 bg-outline rounded-sm"></div>Admin</div>
+<div class="flex items-center gap-1"><div class="w-2 h-2 bg-surface-dim rounded-sm"></div>Pausas</div>
+</div>
+</div>
+<!-- ÁNIMO Y ENERGÍA -->
+<div class="masonry-item bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding">
+<div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Ánimo y Energía</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="mood">mood</span>
+</div>
+<div class="mb-4">
+<div class="font-label-muted text-label-muted text-on-surface-variant mb-2">Ánimo</div>
+<div class="flex gap-2">
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+<div class="w-8 h-8 border border-primary bg-primary-container rounded-[2px]"></div>
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+</div>
+</div>
+<div>
+<div class="font-label-muted text-label-muted text-on-surface-variant mb-2">Energía</div>
+<div class="flex gap-2">
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+<div class="w-8 h-8 border border-primary bg-primary-container rounded-[2px]"></div>
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+<div class="w-8 h-8 border border-outline-variant rounded-[2px] bg-surface-container-low"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- NOTAS (Full Width Bottom) -->
+<div class="w-full bg-surface-container-lowest border border-outline-variant rounded-[6px] p-card-padding mt-2">
+<div class="flex items-center justify-between mb-3 border-b border-outline-variant pb-2">
+<h2 class="font-label-muted text-label-muted text-on-surface-variant uppercase tracking-wider">Notas</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="notes">notes</span>
+</div>
+<p class="font-body text-body text-on-surface leading-relaxed">
+                Día productivo en general. Sentí un poco de fatiga alrededor de las 15:00, probablemente debido al sueño ligeramente reducido la noche anterior. La caminata por la tarde ayudó a despejar la mente antes de la cena. Necesito recordar beber más agua durante el bloque clínico de la mañana.
+            </p>
+</div>
+</main>
+</body></html>

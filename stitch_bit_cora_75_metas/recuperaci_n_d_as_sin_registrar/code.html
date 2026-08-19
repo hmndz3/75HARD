@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaludPro - Recuperación de Registros</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-low": "#f3f3f8",
+                        "on-background": "#191c1f",
+                        "surface": "#f9f9fe",
+                        "outline-variant": "#c2c7d1",
+                        "inverse-surface": "#2e3034",
+                        "secondary-fixed-dim": "#c9c6c4",
+                        "secondary": "#5f5e5d",
+                        "primary-fixed": "#d2e4ff",
+                        "primary": "#1b558b",
+                        "on-primary-fixed-variant": "#02497e",
+                        "on-secondary-container": "#636261",
+                        "on-secondary-fixed": "#1c1c1a",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#6e4d00",
+                        "inverse-primary": "#9fcaff",
+                        "surface-container-high": "#e7e8ed",
+                        "on-surface": "#191c1f",
+                        "primary-fixed-dim": "#9fcaff",
+                        "secondary-fixed": "#e5e2e0",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#f3be5e",
+                        "inverse-on-surface": "#f0f0f5",
+                        "secondary-container": "#e2dfdd",
+                        "primary-container": "#3a6ea5",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#8d6404",
+                        "surface-container": "#ededf3",
+                        "on-tertiary-container": "#ffebce",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#001c37",
+                        "on-tertiary-fixed": "#271900",
+                        "surface-bright": "#f9f9fe",
+                        "on-tertiary-fixed-variant": "#5e4100",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#d9dadf",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#727780",
+                        "on-surface-variant": "#42474f",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e2e2e7",
+                        "surface-tint": "#2b6197",
+                        "surface-variant": "#e2e2e7",
+                        "on-secondary": "#ffffff",
+                        "background": "#f9f9fe",
+                        "on-primary-container": "#e4eeff",
+                        "tertiary-fixed": "#ffdea9",
+                        "on-secondary-fixed-variant": "#474745"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.125rem",
+                        lg: "0.25rem",
+                        xl: "0.5rem",
+                        full: "0.75rem"
+                    },
+                    spacing: {
+                        "sidebar-width": "200px",
+                        "titlebar-height": "44px",
+                        "card-padding": "20px",
+                        "base": "8px",
+                        "card-gap": "16px"
+                    },
+                    fontFamily: {
+                        "card-value": ["Inter"],
+                        "hero-num": ["Inter"],
+                        "label-muted": ["Inter"],
+                        "section-title": ["Inter"],
+                        "body": ["Inter"]
+                    },
+                    fontSize: {
+                        "card-value": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+                        "hero-num": ["56px", { lineHeight: "64px", fontWeight: "600" }],
+                        "label-muted": ["12px", { lineHeight: "16px", letterSpacing: "0.04em", fontWeight: "500" }],
+                        "section-title": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+                        "body": ["14px", { lineHeight: "20px", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface-container-lowest font-body text-body text-on-background flex items-center justify-center min-h-screen">
+<!-- Modal Backdrop / Container -->
+<div class="fixed inset-0 bg-on-background/20 flex items-center justify-center z-50">
+<!-- Recovery Modal -->
+<div class="w-full max-w-[600px] bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col">
+<!-- Header -->
+<div class="p-card-padding border-b border-outline-variant">
+<div class="flex items-center gap-3 mb-1">
+<span class="material-symbols-outlined text-[#d97706]" style="font-size: 24px;">schedule</span>
+<h2 class="font-section-title text-section-title text-on-background m-0">Tienes 3 días sin registrar</h2>
+</div>
+<p class="font-body text-body text-secondary m-0 ml-[36px]">Del 15 al 17 de agosto. Decide qué hacer con cada uno.</p>
+</div>
+<!-- Body: Day Rows -->
+<div class="flex flex-col">
+<!-- Day 1 (15 Ago) - Selected Action -->
+<div class="flex items-center justify-between p-card-padding bg-surface-container-lowest border-b border-outline-variant">
+<div class="flex flex-col">
+<span class="font-body text-body font-semibold text-on-background">15 de agosto</span>
+<span class="font-label-muted text-label-muted text-secondary">Jueves</span>
+</div>
+<!-- Segmented Control -->
+<div class="flex bg-surface-container-low p-[2px] rounded-DEFAULT border border-outline-variant">
+<button class="px-3 py-1 font-label-muted text-label-muted bg-surface-container-lowest border border-primary-container text-primary-container rounded-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-inset">
+                            Llenar ahora
+                        </button>
+<button class="px-3 py-1 font-label-muted text-label-muted text-secondary hover:text-on-background transition-colors focus:outline-none">
+                            Marcar fallido
+                        </button>
+<button class="px-3 py-1 font-label-muted text-label-muted text-secondary hover:text-on-background transition-colors focus:outline-none">
+                            Dejar vacío
+                        </button>
+</div>
+</div>
+<!-- Day 2 (16 Ago) - Unselected -->
+<div class="flex items-center justify-between p-card-padding bg-[#fbfbfa] border-b border-outline-variant">
+<div class="flex flex-col">
+<span class="font-body text-body font-semibold text-on-background">16 de agosto</span>
+<span class="font-label-muted text-label-muted text-secondary">Viernes</span>
+</div>
+<!-- Segmented Control -->
+<div class="flex bg-surface-container-low p-[2px] rounded-DEFAULT border border-outline-variant">
+<button class="px-3 py-1 font-label-muted text-label-muted text-secondary hover:text-on-background transition-colors focus:outline-none">
+                            Llenar ahora
+                        </button>
+<button class="px-3 py-1 font-label-muted text-label-muted text-secondary hover:text-on-background transition-colors focus:outline-none">
+                            Marcar fallido
+                        </button>
+<button class="px-3 py-1 font-label-muted text-label-muted bg-surface-container-lowest border border-outline-variant text-on-background rounded-sm transition-colors focus:outline-none">
+                            Dejar vacío
+                        </button>
+</div>
+</div>
+<!-- Day 3 (17 Ago) - Unselected -->
+<div class="flex items-center justify-between p-card-padding bg-surface-container-lowest">
+<div class="flex flex-col">
+<span class="font-body text-body font-semibold text-on-background">17 de agosto</span>
+<span class="font-label-muted text-label-muted text-secondary">Sábado</span>
+</div>
+<!-- Segmented Control -->
+<div class="flex bg-surface-container-low p-[2px] rounded-DEFAULT border border-outline-variant">
+<button class="px-3 py-1 font-label-muted text-label-muted text-secondary hover:text-on-background transition-colors focus:outline-none">
+                            Llenar ahora
+                        </button>
+<button class="px-3 py-1 font-label-muted text-label-muted bg-surface-container-lowest border border-outline-variant text-on-background rounded-sm transition-colors focus:outline-none">
+                            Marcar fallido
+                        </button>
+<button class="px-3 py-1 font-label-muted text-label-muted text-secondary hover:text-on-background transition-colors focus:outline-none">
+                            Dejar vacío
+                        </button>
+</div>
+</div>
+</div>
+<!-- Muted Note -->
+<div class="px-card-padding pb-4 pt-2 border-t border-outline-variant bg-[#fbfbfa]">
+<p class="font-label-muted text-label-muted text-secondary m-0 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                     Los días vacíos no cuentan para tu racha ni la rompen.
+                 </p>
+</div>
+<!-- Footer Actions -->
+<div class="flex items-center justify-end gap-3 p-card-padding border-t border-outline-variant bg-surface-container-lowest rounded-b-lg">
+<button class="px-4 py-2 font-body text-body bg-surface-container-lowest border border-outline-variant text-on-background rounded-DEFAULT hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+                    Decidir después
+                </button>
+<button class="px-4 py-2 font-body text-body bg-primary-container text-on-primary rounded-DEFAULT hover:bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1">
+                    Aplicar
+                </button>
+</div>
+</div>
+</div>
+</body></html>

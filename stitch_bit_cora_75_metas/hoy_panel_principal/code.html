@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hoy - SaludPro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#1c1c1a",
+                        "on-primary-container": "#e4eeff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#ededf3",
+                        "surface-tint": "#2b6197",
+                        "secondary-container": "#e2dfdd",
+                        "on-background": "#191c1f",
+                        "surface-dim": "#d9dadf",
+                        "on-tertiary-container": "#ffebce",
+                        "error-container": "#ffdad6",
+                        "primary": "#1b558b",
+                        "surface-container-low": "#f3f3f8",
+                        "outline-variant": "#c2c7d1",
+                        "on-tertiary-fixed": "#271900",
+                        "inverse-on-surface": "#f0f0f5",
+                        "surface-container-high": "#e7e8ed",
+                        "tertiary-fixed-dim": "#f3be5e",
+                        "outline": "#727780",
+                        "on-surface": "#191c1f",
+                        "on-error": "#ffffff",
+                        "surface": "#f9f9fe",
+                        "on-primary-fixed-variant": "#02497e",
+                        "surface-bright": "#f9f9fe",
+                        "tertiary-fixed": "#ffdea9",
+                        "on-secondary-fixed-variant": "#474745",
+                        "on-primary-fixed": "#001c37",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#5e4100",
+                        "on-secondary-container": "#636261",
+                        "primary-container": "#3a6ea5",
+                        "primary-fixed-dim": "#9fcaff",
+                        "tertiary-container": "#8d6404",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#2e3034",
+                        "background": "#f9f9fe",
+                        "inverse-primary": "#9fcaff",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5f5e5d",
+                        "surface-variant": "#e2e2e7",
+                        "secondary-fixed": "#e5e2e0",
+                        "on-surface-variant": "#42474f",
+                        "primary-fixed": "#d2e4ff",
+                        "secondary-fixed-dim": "#c9c6c4",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary": "#6e4d00",
+                        "surface-container-highest": "#e2e2e7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "card-padding": "20px",
+                        "titlebar-height": "44px",
+                        "card-gap": "16px",
+                        "base": "8px",
+                        "sidebar-width": "200px"
+                    },
+                    "fontFamily": {
+                        "body": ["Inter"],
+                        "label-muted": ["Inter"],
+                        "section-title": ["Inter"],
+                        "card-value": ["Inter"],
+                        "hero-num": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-muted": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "section-title": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "card-value": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "hero-num": ["56px", { "lineHeight": "64px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#f9f9fe] text-on-background font-body text-body antialiased min-h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant fixed top-0 right-0 w-[calc(100%-200px)] h-[44px] flex items-center justify-between px-card-padding z-50">
+<div class="font-section-title text-section-title text-on-surface">SaludPro</div>
+<div class="flex items-center space-x-4">
+<div class="flex space-x-2">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A small circular avatar showing a professional looking person in a well-lit office setting. The lighting is soft and neutral, fitting for a medical or productivity application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiYhLyGsUVQJ28ou0oTwLfLZO-XzVip4X-IovzxkOF0_baGQA6vQuZnjGeIXQYR1MTpDRyUU2nFTj6j6unllYO5q-V5YN4_g7rCDcxECBdTc-aWe7ZH1VtQMiwPxdrdv87wfxf7BM5ccVSs5KqNrxbpx3QjrYN6iEoW1nTt17GPaTH9xvWSPZQ0Dc5aEyy0zV0Tb7-hO6jRujByDAfiPvqD7iewBGy4zq4ztEOq94mc30qAhwetTqzrA"/>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="bg-[#fbfbfa] font-body text-body fixed left-0 top-0 h-full w-[200px] border-r border-outline-variant flex flex-col py-4 z-50">
+<div class="px-4 mb-8">
+<div class="font-section-title text-section-title font-bold text-on-surface">SaludPro</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mt-1">Productividad Clínica</div>
+</div>
+<div class="flex-1 space-y-1">
+<a class="bg-surface-container border-l-4 border-primary text-on-surface font-semibold flex items-center px-4 py-2 hover:bg-surface-container-low transition-colors opacity-90 transition-opacity duration-150" href="#">
+<span class="material-symbols-outlined mr-3 text-primary" data-icon="today">today</span>
+                Hoy
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center px-4 py-2 border-l-4 border-transparent hover:border-outline-variant" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="history">history</span>
+                Historial
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center px-4 py-2 border-l-4 border-transparent hover:border-outline-variant" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="monitoring">monitoring</span>
+                Estadísticas
+            </a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center px-4 py-2 border-l-4 border-transparent hover:border-outline-variant" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+                Ajustes
+            </a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[200px] mt-[44px] p-8">
+<!-- Hero & Streak Row -->
+<div class="flex flex-col md:flex-row justify-between items-start gap-card-gap mb-8">
+<div class="flex items-baseline space-x-4">
+<h1 class="font-hero-num text-hero-num text-on-surface tracking-tight">DÍA 23</h1>
+<span class="font-section-title text-section-title text-outline">de 75</span>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col min-w-[300px]">
+<div class="flex justify-between items-baseline mb-2">
+<span class="font-label-muted text-label-muted text-on-surface-variant uppercase">RACHA ACTUAL</span>
+<span class="font-card-value text-[24px] leading-[32px] font-semibold text-primary">23 días</span>
+</div>
+<div class="flex space-x-[2px]">
+<!-- Sparkline cells (simulated) -->
+<div class="w-3 h-3 bg-primary rounded-sm opacity-20"></div>
+<div class="w-3 h-3 bg-primary rounded-sm opacity-30"></div>
+<div class="w-3 h-3 bg-primary rounded-sm opacity-40"></div>
+<div class="w-3 h-3 bg-primary rounded-sm opacity-50"></div>
+<div class="w-3 h-3 bg-[#e0a82e] rounded-sm"></div> <!-- Amber representation -->
+<div class="w-3 h-3 bg-primary rounded-sm opacity-60"></div>
+<div class="w-3 h-3 bg-primary rounded-sm opacity-70"></div>
+<div class="w-3 h-3 bg-[#d32f2f] rounded-sm"></div> <!-- Red representation -->
+<div class="w-3 h-3 bg-primary rounded-sm opacity-80"></div>
+<div class="w-3 h-3 bg-primary rounded-sm opacity-90"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<!-- Empty cells for remainder of 30 -->
+<div class="w-3 h-3 bg-surface-variant rounded-sm"></div>
+<div class="w-3 h-3 bg-surface-variant rounded-sm"></div>
+<div class="w-3 h-3 bg-surface-variant rounded-sm"></div>
+<div class="w-3 h-3 bg-surface-variant rounded-sm"></div>
+<div class="w-3 h-3 bg-surface-variant rounded-sm"></div>
+</div>
+</div>
+</div>
+<!-- Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-card-gap mb-8">
+<!-- Sueño -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-card-padding">
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mb-2">SUEÑO ANOCHE</div>
+<div class="font-card-value text-card-value text-on-surface mb-1">6h 40min</div>
+<div class="font-body text-body text-[#e0a82e] flex items-center">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="arrow_downward">arrow_downward</span>
+                    -20 min vs. tu meta
+                </div>
+</div>
+<!-- Ejercicio -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-card-padding">
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mb-2">EJERCICIO HOY</div>
+<div class="font-card-value text-card-value text-on-surface mb-1">0 min</div>
+<div class="font-body text-body text-[#d32f2f] flex items-center">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="warning">warning</span>
+                    sin registrar
+                </div>
+</div>
+<!-- Comidas -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-card-padding">
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mb-2">COMIDAS</div>
+<div class="font-card-value text-card-value text-on-surface mb-1">2 + 1 snack</div>
+<div class="font-body text-body text-on-surface-variant">
+                    1,340 kcal registradas
+                </div>
+</div>
+<!-- Agua -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-card-padding flex flex-col justify-between">
+<div>
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mb-2">AGUA</div>
+<div class="font-card-value text-card-value text-on-surface mb-1">1.8 <span class="text-[18px] text-outline">/ 3.0 L</span></div>
+</div>
+<div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden mt-4">
+<div class="bg-primary h-full" style="width: 60%"></div>
+</div>
+</div>
+</div>
+<!-- Bottom Layout: Pilares & Coach -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-card-gap">
+<!-- LEFT COLUMN (60% ~ 7 cols) -->
+<div class="md:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col">
+<div class="p-card-padding border-b border-outline-variant">
+<h2 class="font-section-title text-section-title text-on-surface">PILARES DE HOY</h2>
+</div>
+<div class="flex flex-col">
+<!-- Row 1 -->
+<div class="flex items-center px-card-padding py-3 border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary mr-4" data-icon="check_circle">check_circle</span>
+<div class="flex-1">
+<div class="font-body text-body text-on-surface">Dormir 7h</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">Registrado 6h 40min (Aceptable)</div>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center px-card-padding py-3 border-b border-outline-variant bg-[#fff5f5]">
+<span class="material-symbols-outlined text-[#d32f2f] mr-4" data-icon="cancel">cancel</span>
+<div class="flex-1">
+<div class="font-body text-body text-on-surface font-medium">Ejercicio 45min</div>
+<div class="font-label-muted text-label-muted text-[#d32f2f]">Pendiente - 0 min registrados</div>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center px-card-padding py-3 border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary mr-4" data-icon="check_circle">check_circle</span>
+<div class="flex-1">
+<div class="font-body text-body text-on-surface">Dieta limpia</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">Sin trampas registradas</div>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="flex items-center px-card-padding py-3 border-b border-outline-variant bg-[#f8fafe]">
+<span class="material-symbols-outlined text-primary opacity-50 mr-4" data-icon="schedule">schedule</span>
+<div class="flex-1">
+<div class="font-body text-body text-on-surface">Agua 3L</div>
+<div class="font-label-muted text-label-muted text-primary">En progreso (1.8 L)</div>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="flex items-center px-card-padding py-3 border-b border-outline-variant bg-[#fff5f5]">
+<span class="material-symbols-outlined text-[#d32f2f] mr-4" data-icon="cancel">cancel</span>
+<div class="flex-1">
+<div class="font-body text-body text-on-surface font-medium">Leer 10 páginas</div>
+<div class="font-label-muted text-label-muted text-[#d32f2f]">Pendiente</div>
+</div>
+</div>
+<!-- Row 6 -->
+<div class="flex items-center px-card-padding py-3">
+<span class="material-symbols-outlined text-primary mr-4" data-icon="check_circle">check_circle</span>
+<div class="flex-1">
+<div class="font-body text-body text-on-surface">Foto de progreso</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">Tomada a las 07:15 AM</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (40% ~ 5 cols) -->
+<div class="md:col-span-5 flex flex-col space-y-card-gap">
+<!-- Coach Panel -->
+<div class="bg-[#eaeae7] border-l-[3px] border-[#e0a82e] border-y border-r border-y-outline-variant border-r-outline-variant rounded-r-lg p-card-padding">
+<div class="flex items-start">
+<span class="material-symbols-outlined text-[#e0a82e] mr-3 mt-1" data-icon="info">info</span>
+<div>
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mb-1">COACH INSIGHT</div>
+<p class="font-body text-body text-on-surface leading-relaxed">
+                                Tercer día seguido bajo 7 horas de sueño. Esto ya no es un mal día, es un patrón.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-card-padding">
+<div class="font-label-muted text-label-muted text-on-surface-variant uppercase mb-4">ACCIONES RÁPIDAS</div>
+<div class="grid grid-cols-2 gap-3 mb-6">
+<button class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-left hover:border-primary transition-colors flex flex-col justify-center">
+<span class="material-symbols-outlined text-primary mb-1 text-[20px]" data-icon="restaurant">restaurant</span>
+<span class="font-body text-[13px] text-on-surface">Registrar comida</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-left hover:border-primary transition-colors flex flex-col justify-center">
+<span class="material-symbols-outlined text-primary mb-1 text-[20px]" data-icon="fitness_center">fitness_center</span>
+<span class="font-body text-[13px] text-on-surface">Registrar ejercicio</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-left hover:border-primary transition-colors flex flex-col justify-center">
+<span class="material-symbols-outlined text-primary mb-1 text-[20px]" data-icon="bloodtype">bloodtype</span>
+<span class="font-body text-[13px] text-on-surface">Medir azúcar</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline-variant rounded px-3 py-2 text-left hover:border-primary transition-colors flex flex-col justify-center">
+<span class="material-symbols-outlined text-primary mb-1 text-[20px]" data-icon="water_drop">water_drop</span>
+<span class="font-body text-[13px] text-on-surface">Agregar agua</span>
+</button>
+</div>
+<button class="w-full bg-primary text-on-primary rounded font-body text-body font-medium py-3 hover:bg-primary-container transition-colors flex justify-center items-center">
+                        Cerrar el día
+                        <span class="material-symbols-outlined ml-2 text-[18px]" data-icon="done_all">done_all</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

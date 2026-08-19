@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historial - SaludPro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#1c1c1a",
+                    "on-primary-container": "#e4eeff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container": "#ededf3",
+                    "surface-tint": "#2b6197",
+                    "secondary-container": "#e2dfdd",
+                    "on-background": "#191c1f",
+                    "surface-dim": "#d9dadf",
+                    "on-tertiary-container": "#ffebce",
+                    "error-container": "#ffdad6",
+                    "primary": "#1b558b",
+                    "surface-container-low": "#f3f3f8",
+                    "outline-variant": "#c2c7d1",
+                    "on-tertiary-fixed": "#271900",
+                    "inverse-on-surface": "#f0f0f5",
+                    "surface-container-high": "#e7e8ed",
+                    "tertiary-fixed-dim": "#f3be5e",
+                    "outline": "#727780",
+                    "on-surface": "#191c1f",
+                    "on-error": "#ffffff",
+                    "surface": "#f9f9fe",
+                    "on-primary-fixed-variant": "#02497e",
+                    "surface-bright": "#f9f9fe",
+                    "tertiary-fixed": "#ffdea9",
+                    "on-secondary-fixed-variant": "#474745",
+                    "on-primary-fixed": "#001c37",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#5e4100",
+                    "on-secondary-container": "#636261",
+                    "primary-container": "#3a6ea5",
+                    "primary-fixed-dim": "#9fcaff",
+                    "tertiary-container": "#8d6404",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#2e3034",
+                    "background": "#f9f9fe",
+                    "inverse-primary": "#9fcaff",
+                    "on-primary": "#ffffff",
+                    "secondary": "#5f5e5d",
+                    "surface-variant": "#e2e2e7",
+                    "secondary-fixed": "#e5e2e0",
+                    "on-surface-variant": "#42474f",
+                    "primary-fixed": "#d2e4ff",
+                    "secondary-fixed-dim": "#c9c6c4",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "tertiary": "#6e4d00",
+                    "surface-container-highest": "#e2e2e7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "card-padding": "20px",
+                    "titlebar-height": "44px",
+                    "card-gap": "16px",
+                    "base": "8px",
+                    "sidebar-width": "200px"
+            },
+            "fontFamily": {
+                    "body": ["Inter"],
+                    "label-muted": ["Inter"],
+                    "section-title": ["Inter"],
+                    "card-value": ["Inter"],
+                    "hero-num": ["Inter"]
+            },
+            "fontSize": {
+                    "body": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-muted": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "section-title": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "card-value": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "hero-num": ["56px", {"lineHeight": "64px", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Strict adherence to design system for data viz colors mapped to theme */
+        .heatmap-completed { background-color: theme('colors.primary'); }
+        .heatmap-partial { background-color: theme('colors.tertiary-fixed-dim'); }
+        .heatmap-failed { background-color: theme('colors.error'); }
+        .heatmap-future { background-color: theme('colors.surface-container'); }
+        .heatmap-skipped {
+            background: repeating-linear-gradient(
+                45deg,
+                theme('colors.surface-variant'),
+                theme('colors.surface-variant') 2px,
+                theme('colors.surface') 2px,
+                theme('colors.surface') 4px
+            );
+            border: 1px solid theme('colors.outline-variant');
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen overflow-hidden flex font-body text-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[200px] bg-[#fbfbfa] dark:bg-surface-dim border-r border-outline-variant dark:border-outline flex flex-col py-4 z-20">
+<div class="px-4 mb-8">
+<h1 class="font-section-title text-section-title font-bold text-on-surface dark:text-inverse-on-surface tracking-tight">SaludPro</h1>
+<p class="font-label-muted text-label-muted text-on-surface-variant mt-1">Productividad Clínica</p>
+</div>
+<ul class="flex flex-col gap-1 w-full">
+<li>
+<a class="flex items-center gap-3 px-4 py-2 mx-2 rounded text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">today</span>
+<span class="font-body text-body">Hoy</span>
+</a>
+</li>
+<li>
+<!-- Active State -->
+<a class="flex items-center gap-3 px-4 py-2 bg-surface-container dark:bg-surface-container-high border-l-4 border-primary text-on-surface dark:text-inverse-on-surface font-semibold opacity-90 transition-opacity duration-150 relative -left-[1px]" href="#">
+<span class="material-symbols-outlined text-[20px] icon-fill">history</span>
+<span class="font-body text-body">Historial</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-2 mx-2 rounded text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="font-body text-body">Estadísticas</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-2 mx-2 rounded text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-body text-body">Ajustes</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-200px)] h-[44px] bg-surface dark:bg-surface-bright border-b border-outline-variant dark:border-outline flex items-center justify-between px-card-padding z-10">
+<div class="flex items-center gap-2">
+<!-- Space for breadcrumbs or context if needed, currently empty per JSON logic keeping search on right -->
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+<input class="h-7 pl-8 pr-3 text-body font-body bg-surface-container-lowest border border-outline-variant rounded focus:border-primary focus:ring-0 w-48 text-on-surface placeholder:text-on-surface-variant transition-colors" placeholder="Buscar..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-[200px] mt-[44px] p-card-padding w-[calc(100%-200px)] h-[calc(100vh-44px)] overflow-y-auto bg-background flex flex-col gap-card-gap">
+<!-- Top: 75 DÍAS Card -->
+<section class="bg-surface border border-outline-variant rounded-lg p-card-padding">
+<div class="flex justify-between items-end mb-4 border-b border-outline-variant pb-2">
+<h2 class="font-section-title text-section-title font-bold text-on-surface">75 DÍAS</h2>
+<div class="flex items-center gap-4 font-label-muted text-label-muted text-on-surface-variant">
+<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm heatmap-completed"></div>18 completos</div>
+<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm heatmap-partial"></div>3 parciales</div>
+<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm heatmap-failed"></div>2 fallidos</div>
+</div>
+</div>
+<div class="flex items-center justify-center py-2">
+<div class="flex gap-[2px]">
+<!-- Col 1 -->
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 1: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 2: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 3: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 4: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-partial" title="Día 5: Parcial"></div>
+</div>
+<!-- Col 2 -->
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 6: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 7: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-failed" title="Día 8: Fallido"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 9: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 10: Completo"></div>
+</div>
+<!-- Col 3 -->
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 11: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-partial" title="Día 12: Parcial"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 13: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 14: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 15: Completo"></div>
+</div>
+<!-- Col 4 -->
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 16: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 17: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 18: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-failed" title="Día 19: Fallido"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-partial" title="Día 20: Parcial"></div>
+</div>
+<!-- Col 5 -->
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 21: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 22: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-completed" title="Día 23: Completo"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+</div>
+<!-- Cols 6-15 (Future/Skipped) -->
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+</div>
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+</div>
+<div class="flex flex-col gap-[2px]">
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-skipped" title="Día 38: Saltado"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+<div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div>
+</div>
+<!-- Just filling out the 15x5 grid with future blocks -->
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+<div class="flex flex-col gap-[2px]"><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div><div class="w-[22px] h-[22px] rounded-sm heatmap-future"></div></div>
+</div>
+</div>
+</section>
+<!-- Middle: Filter Row -->
+<section class="flex items-center justify-between">
+<!-- Segmented Control -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-1 flex items-center h-[36px]">
+<button class="px-4 h-full rounded text-body font-body font-medium bg-surface border border-outline-variant text-on-surface shadow-sm">Todos</button>
+<button class="px-4 h-full rounded text-body font-body text-on-surface-variant hover:text-on-surface transition-colors">Completos</button>
+<button class="px-4 h-full rounded text-body font-body text-on-surface-variant hover:text-on-surface transition-colors">Fallidos</button>
+</div>
+<div class="flex items-center gap-3">
+<!-- Date Dropdown -->
+<button class="h-[36px] px-3 bg-surface border border-outline-variant rounded flex items-center gap-2 text-body font-body text-on-surface hover:bg-surface-container-lowest transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span>Octubre 2023</span>
+<span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+</button>
+<!-- Search Input -->
+<div class="relative h-[36px]">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+<input class="h-full pl-9 pr-3 text-body font-body bg-surface border border-outline-variant rounded focus:border-primary focus:ring-0 w-64 text-on-surface placeholder:text-on-surface-variant transition-colors" placeholder="Filtrar registros..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Bottom: Data Table -->
+<section class="bg-surface border border-outline-variant rounded-lg overflow-hidden flex-shrink-0">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium w-16">Día</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium w-24">Fecha</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium w-32">Estado</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium text-right">Sueño</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium text-center">Ejercicio</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium text-center">Comidas</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium text-right">Agua</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium text-right">Azúcar</th>
+<th class="py-2.5 px-4 font-label-muted text-label-muted text-on-surface-variant font-medium text-right">Peso</th>
+</tr>
+</thead>
+<tbody class="text-body font-body tabular-nums text-on-surface">
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">23</td>
+<td class="py-2.5 px-4">23 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">7h 45m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.2L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">74.5kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">22</td>
+<td class="py-2.5 px-4">22 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">8h 10m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.0L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">74.7kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">21</td>
+<td class="py-2.5 px-4">21 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">7h 30m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.5L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">74.9kg</td>
+</tr>
+<!-- Hover State Row (Sunken bg) -->
+<tr class="border-b border-outline-variant bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">20</td>
+<td class="py-2.5 px-4">20 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-partial"></div>Parcial</div></td>
+<td class="py-2.5 px-4 text-right">6h 15m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-outline">close</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.0L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.1kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">19</td>
+<td class="py-2.5 px-4">19 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-failed"></div>Fallido</div></td>
+<td class="py-2.5 px-4 text-right">5h 45m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-outline">close</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-outline">close</span></td>
+<td class="py-2.5 px-4 text-right">2.5L</td>
+<td class="py-2.5 px-4 text-right">45g</td>
+<td class="py-2.5 px-4 text-right">75.0kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">18</td>
+<td class="py-2.5 px-4">18 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">8h 00m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.1L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.2kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">17</td>
+<td class="py-2.5 px-4">17 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">7h 20m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.3L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.4kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">16</td>
+<td class="py-2.5 px-4">16 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">7h 50m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.0L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.3kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">15</td>
+<td class="py-2.5 px-4">15 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">8h 30m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.0L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.6kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">14</td>
+<td class="py-2.5 px-4">14 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">7h 10m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.2L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.5kg</td>
+</tr>
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">13</td>
+<td class="py-2.5 px-4">13 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-completed"></div>Completo</div></td>
+<td class="py-2.5 px-4 text-right">7h 40m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-right">4.1L</td>
+<td class="py-2.5 px-4 text-right">0g</td>
+<td class="py-2.5 px-4 text-right">75.8kg</td>
+</tr>
+<tr class="border-b-0 hover:bg-surface-container transition-colors group">
+<td class="py-2.5 px-4 text-on-surface-variant">12</td>
+<td class="py-2.5 px-4">12 Oct</td>
+<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full heatmap-partial"></div>Parcial</div></td>
+<td class="py-2.5 px-4 text-right">6h 50m</td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="py-2.5 px-4 text-center"><span class="material-symbols-outlined text-[18px] text-outline">close</span></td>
+<td class="py-2.5 px-4 text-right">3.8L</td>
+<td class="py-2.5 px-4 text-right">15g</td>
+<td class="py-2.5 px-4 text-right">75.7kg</td>
+</tr>
+</tbody>
+</table>
+</section>
+</main>
+</body></html>

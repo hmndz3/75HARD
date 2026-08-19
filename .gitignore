@@ -1,0 +1,22 @@
+# Datos personales — nunca al repo
+*.db
+*.db-wal
+*.db-shm
+/photos/
+/backups/
+
+# Build
+target/
+node_modules/
+dist/
+.vite/
+
+# Entorno
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+
+# Generado por tauri-build en cada compilación
+/src-tauri/gen/schemas/

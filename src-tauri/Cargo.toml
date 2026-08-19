@@ -1,0 +1,38 @@
+[package]
+name = "app75hard"
+version = "0.1.0"
+description = "75 HARD — diario cuantificado de 75 días"
+authors = ["Harry Mendez"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "app75hard_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+# Necesaria en compilaciones de producción: hace que la app sirva el frontend
+# desde el binario en vez de buscar el servidor de Vite. `tauri build` la
+# activa sola; no la borres.
+custom-protocol = ["tauri/custom-protocol"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
+uuid = { version = "1", features = ["v4"] }
+thiserror = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

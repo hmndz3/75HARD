@@ -1,0 +1,406 @@
+/* Sistema de diseño de 75 HARD.
+   Todo es gris; el color es información. Nada de acentos decorativos, nada de
+   degradados, nada de sombras: la profundidad se hace con hairlines de 1px y
+   saltos de superficie. */
+
+:root {
+  /* Grises cálidos — el 95% de la pantalla */
+  --bg: #f4f4f2;
+  --surface-1: #fbfbfa;
+  --surface-2: #ffffff;
+  --surface-sunken: #eaeae7;
+  --border: #dcdbd7;
+  --border-strong: #c6c5bf;
+
+  --ink-primary: #141413;
+  --ink-secondary: #5e5d58;
+  --ink-muted: #7f7e78;
+
+  /* Único acento de la app: azul pizarra */
+  --accent: #3a6ea5;
+  --accent-hover: #2e5786;
+  --accent-soft: #e4ecf4;
+  --accent-dim: #a7c0dc;
+
+  /* Estado — los únicos colores saturados. Nunca van solos: siempre con
+     icono o texto. */
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --good-soft: #e8f5e8;
+  --warning-soft: #fdf3e0;
+  --critical-soft: #fbeaea;
+
+  --radius-card: 6px;
+  --radius-control: 4px;
+
+  --sidebar-w: 200px;
+  --titlebar-h: 44px;
+
+  --font: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #141413;
+  --surface-1: #1f1f1d;
+  --surface-2: #2e2d2a;
+  --surface-sunken: #0d0d0c;
+  --border: #2e2d2a;
+  --border-strong: #45443f;
+
+  --ink-primary: #fbfbfa;
+  --ink-secondary: #a5a49d;
+  --ink-muted: #7f7e78;
+
+  --accent: #5f86b2;
+  --accent-hover: #84a4c9;
+  --accent-soft: #234269;
+  --accent-dim: #45443f;
+
+  --good-soft: #16281a;
+  --warning-soft: #2c2416;
+  --critical-soft: #2c1717;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}
+
+#app {
+  height: 100%;
+}
+
+/* Números siempre alineados en columna */
+.num,
+table,
+input[type="number"],
+input[type="time"],
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ tipografía */
+
+.hero-num {
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 64px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.card-value {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  margin: 0;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.muted {
+  color: var(--ink-secondary);
+}
+
+.dim {
+  color: var(--ink-muted);
+}
+
+/* --------------------------------------------------------------- estado */
+
+.s-good {
+  color: var(--good);
+}
+.s-warning {
+  color: #9a6a06; /* el ámbar puro no pasa contraste sobre fondo claro */
+}
+.s-serious {
+  color: #b4522a;
+}
+.s-critical {
+  color: var(--critical);
+}
+.s-neutral {
+  color: var(--ink-secondary);
+}
+
+:root[data-theme="dark"] .s-warning {
+  color: #fab219;
+}
+:root[data-theme="dark"] .s-serious {
+  color: #ec835a;
+}
+
+/* ---------------------------------------------------------------- foco */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------- controles */
+
+button {
+  font: inherit;
+  color: inherit;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  padding: 0 14px;
+  height: 34px;
+  cursor: pointer;
+  transition: background 80ms linear, border-color 80ms linear;
+}
+
+button:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-secondary);
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+button.danger {
+  color: var(--critical);
+  border-color: var(--critical);
+  background: var(--surface-2);
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--critical-soft);
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: var(--ink-primary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: 0 10px;
+  height: 34px;
+  width: 100%;
+  user-select: text;
+}
+
+textarea {
+  padding: 8px 10px;
+  height: auto;
+  resize: vertical;
+  line-height: 20px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-muted);
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- forma */
+
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+}
+
+.card.flush {
+  padding: 0;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sunken {
+  background: var(--surface-sunken);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spread {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-cards {
+  display: grid;
+  gap: 16px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- chips */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  font-size: 12px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------- tablas */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 0 12px;
+  height: 36px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: var(--surface-sunken);
+}
+
+th.right,
+td.right {
+  text-align: right;
+}
+
+/* -------------------------------------------------------------- scroll */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

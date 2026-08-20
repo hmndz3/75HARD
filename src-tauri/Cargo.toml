@@ -32,6 +32,9 @@ thiserror = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-global-shortcut = "2"
 tokio = { version = "1", default-features = false, features = ["time"] }
+tauri-plugin-dialog = "2"
+aes-gcm = "0.10"
+argon2 = "0.5"
 
 [profile.release]
 codegen-units = 1

@@ -240,3 +240,179 @@ export interface Bootstrap {
 }
 
 export type MissingAction = "fill" | "failed" | "empty";
+
+// ---------------------------------------------------- estadísticas (Fase 2)
+
+export type Range = "7" | "30" | "all";
+
+export interface SleepPoint {
+  date: string;
+  label: string;
+  minutes: number | null;
+}
+
+export interface HistBucket {
+  label: string;
+  count: number;
+}
+
+export interface XY {
+  x: number;
+  y: number;
+}
+
+export interface SleepStats {
+  goalMin: number;
+  avgMin: number | null;
+  bestMin: number | null;
+  worstMin: number | null;
+  balanceMin: number;
+  nights: number;
+  daily: SleepPoint[];
+  movingAvg: (number | null)[];
+  bedtimes: HistBucket[];
+  modalBedtime: string | null;
+  sleepVsEnergy: XY[];
+  correlation: number | null;
+}
+
+export interface WeekBar {
+  label: string;
+  indoorMin: number;
+  outdoorMin: number;
+}
+
+export interface CaloriesDay {
+  date: string;
+  label: string;
+  intake: number;
+  burned: number;
+}
+
+export interface KindBar {
+  label: string;
+  minutes: number;
+}
+
+export interface WorkoutStats {
+  sessions: number;
+  totalMin: number;
+  weeklyAvgMin: number;
+  daysWithout: number;
+  weeklyGoalMin: number;
+  weekly: WeekBar[];
+  calories: CaloriesDay[];
+  byKind: KindBar[];
+}
+
+export interface GlucosePoint {
+  id: string;
+  date: string;
+  time: string;
+  value: number;
+  context: string;
+  contextLabel: string;
+  meal: string | null;
+  notes: string | null;
+  outOfRange: boolean;
+}
+
+export interface ContextAvg {
+  context: string;
+  label: string;
+  avg: number;
+  count: number;
+}
+
+export interface GlucoseStats {
+  readings: GlucosePoint[];
+  byContext: ContextAvg[];
+  total: number;
+  outOfRange: number;
+  avgFasting: number | null;
+  avgPostMeal: number | null;
+}
+
+export interface WeightPoint {
+  date: string;
+  label: string;
+  kg: number | null;
+}
+
+export interface WorkDay {
+  date: string;
+  label: string;
+  values: number[];
+}
+
+export interface BodyStats {
+  currentKg: number | null;
+  deltaKg: number | null;
+  weeklyDeltaKg: number | null;
+  points: WeightPoint[];
+  movingAvg: (number | null)[];
+  categories: string[];
+  workDaily: WorkDay[];
+  workHoursWeek: number;
+  workAvgDailyH: number;
+  workGoalMin: number;
+}
+
+export interface Correlation {
+  label: string;
+  caption: string;
+  r: number;
+  n: number;
+}
+
+// -------------------------------------------------------- Fase 3
+
+export interface BeforeAfter {
+  label: string;
+  before: number | null;
+  after: number | null;
+  unit: string;
+  better: "up" | "down" | "none";
+}
+
+export interface Completion {
+  name: string;
+  startDate: string;
+  endDate: string;
+  targetDays: number;
+  completeDays: number;
+  finished: boolean;
+  tiles: BeforeAfter[];
+  heatmap: HeatmapCell[];
+  weight: (number | null)[];
+  sleep: (number | null)[];
+  glucose: (number | null)[];
+}
+
+export interface ProgressPhoto {
+  id: string;
+  date: string;
+  weekdayLabel: string;
+  dayNumber: number | null;
+}
+
+export interface BackupFile {
+  name: string;
+  path: string;
+  sizeKb: number;
+}
+
+export interface DoctorReport {
+  generatedAt: string;
+  from: string;
+  to: string;
+  fromLabel: string;
+  toLabel: string;
+  glucose: GlucoseStats;
+  weightStart: number | null;
+  weightEnd: number | null;
+  avgSleepMin: number | null;
+  mealsPerDay: number;
+  workouts: number;
+  days: number;
+}

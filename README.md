@@ -12,7 +12,7 @@ de datos, fases y decisiones) y [`docs/75HARD-DISENO.md`](docs/75HARD-DISENO.md)
 
 ---
 
-## Estado: Fases 0 y 1 completas
+## Estado: terminada
 
 Lo que ya funciona:
 
@@ -35,14 +35,22 @@ Lo que ya funciona:
 - **Atajo global `Ctrl+Alt+H`** para la captura rápida desde cualquier app.
 - **Pantalla de racha rota** (P14) al cerrar un día como fallido.
 
-El detalle de la Fase 1 está en [`docs/FASE-1-AVANCE.md`](docs/FASE-1-AVANCE.md).
+- **Cuatro pantallas de estadísticas** (P7–P10) con Chart.js: sueño, ejercicio,
+  glucosa y peso/trabajo, más una pestaña de correlaciones.
+- **Export CSV y JSON** del historial completo.
+- **Informe imprimible para el médico**, con 30, 60 o 90 días de lecturas.
+- **Fotos de progreso** con comparador de antes y después.
+- **Copias de seguridad**: instantáneas locales rotadas y copia cifrada con
+  AES-256-GCM para sacar los datos de la máquina.
+- **Tema claro y oscuro**, o seguir a Windows.
+- **Resumen del reto completado** (P15) con antes/después por métrica.
 
-Pendiente por fase, tal y como está en el spec:
+Las 15 pantallas del mapa del spec están hechas. El detalle de cada fase:
+[Fase 1](docs/FASE-1-AVANCE.md) · [Fases 2 y 3](docs/FASE-2-3-AVANCE.md).
 
-| Fase | Qué falta |
-|---|---|
-| 2 | Las gráficas (P7–P10), export CSV/JSON |
-| 3 | PDF para el médico, correlaciones, fotos de progreso, backup cifrado, tema oscuro, reto completado (P15) |
+Lo que queda fuera a propósito: sincronización con un servidor. El esquema está
+preparado para ella (UUID y `updated_at` en todas las tablas), pero no hay nada
+implementado y la app no toca la red.
 
 El tema oscuro ya tiene sus tokens definidos en `src/app.css`; solo falta el
 interruptor.
@@ -80,8 +88,12 @@ npm run check
 ```
 
 ```bash
-cargo test --manifest-path src-tauri/Cargo.toml
+cargo test --release --manifest-path src-tauri/Cargo.toml
 ```
+
+> El `--release` no es capricho: en esta máquina Smart App Control bloquea de
+> forma intermitente los binarios de test recién compilados en modo debug. Con
+> `--release` pasa de forma fiable.
 
 ---
 
@@ -92,8 +104,9 @@ sobre el binario de release:
 
 | Estado | Working set | Comprometido |
 |---|---|---|
-| Ventana abierta | ~27 MB (+ procesos de WebView2) | ~6 MB |
-| **Cerrada, en bandeja** | **~1.7 MB** | **~5.6 MB** |
+| Ventana abierta | ~28 MB (+ procesos de WebView2) | ~5.7 MB |
+| **Cerrada, en bandeja** | **~1.7 MB** | **~5.7 MB** |
+| Tras un tick del planificador | ~3.4 MB | ~5.6 MB |
 
 Al cerrar la ventana se **destruye**, no se esconde: WebView2 termina sus
 procesos y el proceso Rust devuelve su working set al sistema
@@ -107,12 +120,17 @@ procesos y el proceso Rust devuelve su working set al sistema
 src/                    UI — Svelte 5 + TypeScript, CSS puro con variables
   app.css               tokens del sistema de diseño
   lib/api.ts            envoltorios tipados de invoke()
+  lib/charts.ts         Chart.js atado al sistema de diseño
+  lib/theme.svelte.ts   tema claro/oscuro
   lib/components/       Shell, TitleBar, Modal, EntryForms, CoachPanel…
   routes/               Today, History, DayDetail, Settings, Onboarding…
+  routes/stats/         las cuatro pantallas de gráficas
 src-tauri/
   src/coach.rs          reglas de regaño/felicitación (puras, con tests)
   src/daycut.rs         el día corta a las 4:00 AM (con tests)
   src/scheduler.rs      tick de 60 s que dispara los recordatorios
+  src/backup.rs         instantáneas locales y copia cifrada (AES-256-GCM)
+  src/db/stats.rs       agregaciones de las gráficas y del informe
   src/ram.rs            devolver memoria al cerrar la ventana
   src/tray.rs           icono de bandeja
   src/db/               conexión, migraciones, modelos y toda la SQL

@@ -34,6 +34,28 @@ pub fn new_id() -> String {
     Uuid::new_v4().to_string()
 }
 
+/// Etiquetas legibles de los enumerados que se guardan en inglés. Viven aquí
+/// para que Rust y la UI digan exactamente lo mismo en gráficas e informes.
+pub fn glucose_context_label(context: &str) -> &'static str {
+    match context {
+        "fasting" => "En ayunas",
+        "pre_meal" => "Antes de comer",
+        "post_meal_2h" => "2 h post-comida",
+        "pre_workout" => "Antes de entrenar",
+        _ => "Aleatoria",
+    }
+}
+
+pub fn workout_kind_label(kind: &str) -> &'static str {
+    match kind {
+        "gym" => "Gimnasio",
+        "cardio" => "Cardio",
+        "outdoor" => "Al aire libre",
+        "sport" => "Deporte",
+        _ => "Otro",
+    }
+}
+
 pub fn weekday_label(date: NaiveDate) -> String {
     let dia = match date.weekday().num_days_from_monday() {
         0 => "Lunes",
@@ -1330,6 +1352,59 @@ pub fn missing_days(conn: &Connection, today_date: NaiveDate) -> AppResult<Vec<M
     }
 
     Ok(out)
+}
+
+// ------------------------------------------------- fotos de progreso (F3)
+
+pub fn add_photo(conn: &Connection, date: NaiveDate, path: &str) -> AppResult<String> {
+    ensure_day(conn, date)?;
+    let id = new_id();
+    conn.execute(
+        "INSERT INTO progress_photo (id, date, path, updated_at) VALUES (?1, ?2, ?3, ?4)",
+        params![id, date.format(DATE_FMT).to_string(), path, now_iso()],
+    )?;
+    Ok(id)
+}
+
+pub fn photos(conn: &Connection) -> AppResult<Vec<ProgressPhoto>> {
+    let challenge = active_challenge(conn)?;
+    let start = match &challenge {
+        Some(c) => Some(parse_date(&c.start_date)?),
+        None => None,
+    };
+
+    let mut stmt = conn.prepare("SELECT id, date FROM progress_photo ORDER BY date ASC, id ASC")?;
+    let filas = stmt
+        .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut out = Vec::new();
+    for (id, date) in filas {
+        let d = parse_date(&date)?;
+        out.push(ProgressPhoto {
+            id,
+            weekday_label: weekday_label(d),
+            day_number: start.and_then(|s| daycut::day_number(s, d)),
+            date,
+        });
+    }
+    Ok(out)
+}
+
+pub fn photo_path(conn: &Connection, id: &str) -> AppResult<String> {
+    conn.query_row("SELECT path FROM progress_photo WHERE id = ?1", [id], |r| {
+        r.get(0)
+    })
+    .optional()?
+    .ok_or_else(|| AppError::NotFound("esa foto ya no existe".into()))
+}
+
+pub fn delete_photo(conn: &Connection, id: &str) -> AppResult<()> {
+    let n = conn.execute("DELETE FROM progress_photo WHERE id = ?1", [id])?;
+    if n == 0 {
+        return Err(AppError::NotFound("esa foto ya no existe".into()));
+    }
+    Ok(())
 }
 
 pub fn touch_last_open(conn: &Connection, date: NaiveDate) -> AppResult<()> {

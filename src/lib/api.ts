@@ -15,6 +15,16 @@ import type {
   Rules,
   SleepPreview,
   TodayView,
+  BodyStats,
+  Completion,
+  Correlation,
+  DoctorReport,
+  GlucoseStats,
+  Range,
+  SleepStats,
+  WorkoutStats,
+  BackupFile,
+  ProgressPhoto,
 } from "./types";
 
 export class ApiError extends Error {}
@@ -149,6 +159,39 @@ export const setSettings = (entries: Record<string, string>) =>
 
 export const setAutostart = (enabled: boolean) => call<boolean>("set_autostart", { enabled });
 export const isAutostartEnabled = () => call<boolean>("is_autostart_enabled");
+
+// ----------------------------------------------------------- estadísticas
+
+export const getSleepStats = (range: Range) => call<SleepStats>("get_sleep_stats", { range });
+export const getWorkoutStats = (range: Range) =>
+  call<WorkoutStats>("get_workout_stats", { range });
+export const getGlucoseStats = (range: Range) =>
+  call<GlucoseStats>("get_glucose_stats", { range });
+export const getBodyStats = (range: Range) => call<BodyStats>("get_body_stats", { range });
+export const getCorrelations = () => call<Correlation[]>("get_correlations");
+export const getCompletion = () => call<Completion | null>("get_completion");
+export const getDoctorReport = (days?: number) =>
+  call<DoctorReport>("get_doctor_report", { days });
+
+export const exportData = (format: "csv" | "json", path: string) =>
+  call<string>("export_data", { format, path });
+
+// ------------------------------------------------- fotos de progreso (F3)
+
+export const addProgressPhoto = (date: string, source: string) =>
+  call<string>("add_progress_photo", { date, source });
+export const listProgressPhotos = () => call<ProgressPhoto[]>("list_progress_photos");
+export const readProgressPhoto = (id: string) => call<string>("read_progress_photo", { id });
+export const deleteProgressPhoto = (id: string) => call<void>("delete_progress_photo", { id });
+
+// ----------------------------------------------------- copias de seguridad
+
+export const backupNow = () => call<string>("backup_now");
+export const listBackups = () => call<BackupFile[]>("list_backups");
+export const createEncryptedBackup = (path: string, passphrase: string) =>
+  call<string>("create_encrypted_backup", { path, passphrase });
+export const restoreEncryptedBackup = (path: string, passphrase: string) =>
+  call<string>("restore_encrypted_backup", { path, passphrase });
 
 // ---------------------------------------------------------------- ventanas
 

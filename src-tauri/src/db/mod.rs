@@ -1,6 +1,7 @@
 pub mod migrations;
 pub mod models;
 pub mod queries;
+pub mod stats;
 
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -37,11 +38,10 @@ impl Db {
     }
 }
 
-/// Abre (o crea) la base en `dir/data.db`, aplica los PRAGMA y corre migraciones.
-pub fn open(dir: &Path) -> AppResult<Db> {
-    std::fs::create_dir_all(dir)?;
-    let path = dir.join("data.db");
-    let conn = Connection::open(&path)?;
+/// Abre una conexión con los PRAGMA puestos y las migraciones al día.
+/// Se usa al arrancar y también al restaurar una copia de seguridad.
+pub fn conectar(path: &Path) -> AppResult<Connection> {
+    let conn = Connection::open(path)?;
 
     // WAL: sobrevive a un apagón sin corromper la base y no bloquea lecturas.
     conn.pragma_update(None, "journal_mode", "WAL")?;
@@ -50,6 +50,14 @@ pub fn open(dir: &Path) -> AppResult<Db> {
     conn.pragma_update(None, "busy_timeout", 5000)?;
 
     migrations::run(&conn)?;
+    Ok(conn)
+}
+
+/// Abre (o crea) la base en `dir/data.db`.
+pub fn open(dir: &Path) -> AppResult<Db> {
+    std::fs::create_dir_all(dir)?;
+    let path = dir.join("data.db");
+    let conn = conectar(&path)?;
 
     Ok(Db {
         conn: Mutex::new(conn),

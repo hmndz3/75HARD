@@ -9,10 +9,14 @@
   import Onboarding from "./routes/Onboarding.svelte";
   import Recovery from "./routes/Recovery.svelte";
   import BrokenStreak from "./routes/BrokenStreak.svelte";
+  import DoctorReport from "./routes/DoctorReport.svelte";
+  import Photos from "./routes/Photos.svelte";
+  import Completion from "./routes/Completion.svelte";
   import QuickEntry from "./routes/QuickEntry.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   import * as api from "./lib/api";
+  import { iniciarTema } from "./lib/theme.svelte";
   import type { Bootstrap, MissingDay, TodayView } from "./lib/types";
 
   // Las dos ventanas cargan el mismo index.html; lo que las distingue es su
@@ -23,14 +27,17 @@
   let view = $state<TodayView | null>(null);
   let missing = $state<MissingDay[]>([]);
   let showRecovery = $state(false);
-  let route = $state<"hoy" | "historial" | "estadisticas" | "ajustes">("hoy");
+  let route = $state<"hoy" | "historial" | "estadisticas" | "fotos" | "ajustes">("hoy");
   let openDate = $state<string | null>(null);
   let brokenDate = $state<string | null>(null);
+  let reportOpen = $state(false);
+  let completionOpen = $state(false);
   let fatal = $state("");
 
   async function load() {
     try {
       boot = await api.bootstrap();
+      iniciarTema(boot.settings.theme);
       if (!boot.needsOnboarding) {
         view = await api.getToday();
         missing = await api.getMissingDays();
@@ -50,6 +57,8 @@
   function goto(to: string) {
     openDate = null;
     brokenDate = null;
+    reportOpen = false;
+    completionOpen = false;
     route = to as typeof route;
   }
 </script>
@@ -73,6 +82,22 @@
 {:else if boot.needsOnboarding}
   <TitleBar subtitle="Nuevo reto" />
   <Onboarding {boot} ondone={load} />
+{:else if completionOpen}
+  <TitleBar subtitle="Reto completado" />
+  <Completion
+    onback={() => (completionOpen = false)}
+    onnew={async () => {
+      completionOpen = false;
+      await load();
+    }}
+    onexport={() => {
+      completionOpen = false;
+      reportOpen = true;
+    }}
+  />
+{:else if reportOpen}
+  <TitleBar subtitle="Informe para el médico" />
+  <DoctorReport onback={() => (reportOpen = false)} />
 {:else if brokenDate}
   <TitleBar subtitle="Racha rota" />
   <BrokenStreak
@@ -110,9 +135,11 @@
     {:else if route === "historial"}
       <History onopenday={(d) => (openDate = d)} />
     {:else if route === "estadisticas"}
-      <Stats />
+      <Stats onreport={() => (reportOpen = true)} />
+    {:else if route === "fotos"}
+      <Photos />
     {:else}
-      <Settings {boot} onreload={load} />
+      <Settings {boot} onreload={load} oncompletion={() => (completionOpen = true)} />
     {/if}
   </Shell>
 

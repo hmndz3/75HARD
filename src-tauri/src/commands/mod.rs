@@ -1,12 +1,14 @@
 //! Comandos expuestos a la UI. Aquí solo se valida la entrada y se orquesta;
 //! la SQL vive en `db::queries`.
 
+pub mod data;
 pub mod day;
 pub mod glucose;
 pub mod meals;
 pub mod reminders;
 pub mod settings;
 pub mod sleep;
+pub mod stats;
 pub mod tracking;
 pub mod window;
 pub mod workouts;

@@ -294,6 +294,17 @@ pub struct BrokenStreak {
     pub message: CoachMessage,
 }
 
+/// Una foto de progreso (Fase 3). El archivo vive fuera de la base, en
+/// `%APPDATA%\75hard\photos`; aquí solo va la referencia.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProgressPhoto {
+    pub id: String,
+    pub date: String,
+    pub weekday_label: String,
+    pub day_number: Option<i64>,
+}
+
 /// Un día calendario que pasó sin que se abriera la app (P13).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

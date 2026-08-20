@@ -1,12 +1,28 @@
 <script lang="ts">
   import { untrack } from "svelte";
+  // `save` ya existe en este componente para guardar ajustes; se renombra el
+  // del diálogo para que no choquen.
+  import { open as abrirArchivo, save as guardarComo } from "@tauri-apps/plugin-dialog";
 
   import * as api from "../lib/api";
-  import type { Bootstrap, Reminder, Tone } from "../lib/types";
+  import { cambiarTema, tema, type Tema } from "../lib/theme.svelte";
+  import { todayIso } from "../lib/format";
+  import type { BackupFile, Bootstrap, Reminder, Tone } from "../lib/types";
 
-  let { boot, onreload }: { boot: Bootstrap; onreload: () => Promise<void> } = $props();
+  let {
+    boot,
+    onreload,
+    oncompletion,
+  }: { boot: Bootstrap; onreload: () => Promise<void>; oncompletion: () => void } = $props();
 
-  type Section = "reto" | "coach" | "metas" | "recordatorios" | "sistema";
+  type Section =
+    | "reto"
+    | "coach"
+    | "metas"
+    | "recordatorios"
+    | "apariencia"
+    | "datos"
+    | "sistema";
   let section = $state<Section>("coach");
 
   let settings = $state(untrack(() => ({ ...boot.settings })));
@@ -37,6 +53,76 @@
   }
 
   const notificacionesOn = $derived(settings.notifications !== "0");
+
+  // --- Datos: exportación y copias de seguridad
+  let copias = $state.raw<BackupFile[]>([]);
+  let frase = $state("");
+  let ocupado = $state("");
+
+  const recargarCopias = () =>
+    api
+      .listBackups()
+      .then((c) => (copias = c))
+      .catch(() => {});
+  recargarCopias();
+
+  async function conAviso(que: string, fn: () => Promise<string>) {
+    ocupado = que;
+    error = "";
+    try {
+      const msg = await fn();
+      if (msg) flash(msg);
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    } finally {
+      ocupado = "";
+      await recargarCopias();
+    }
+  }
+
+  const exportar = (formato: "csv" | "json") =>
+    conAviso(formato, async () => {
+      const destino = await guardarComo({
+        defaultPath: `75hard-${todayIso()}.${formato}`,
+        filters: [{ name: formato.toUpperCase(), extensions: [formato] }],
+      });
+      if (!destino) return "";
+      return `Exportado a ${await api.exportData(formato, destino)}`;
+    });
+
+  const instantanea = () =>
+    conAviso("snapshot", async () => `Copia local creada: ${await api.backupNow()}`);
+
+  const copiaCifrada = () =>
+    conAviso("cifrar", async () => {
+      const destino = await guardarComo({
+        defaultPath: `75hard-${todayIso()}.75bak`,
+        filters: [{ name: "Copia cifrada", extensions: ["75bak"] }],
+      });
+      if (!destino) return "";
+      await api.createEncryptedBackup(destino, frase);
+      frase = "";
+      return `Copia cifrada guardada en ${destino}`;
+    });
+
+  const restaurar = () =>
+    conAviso("restaurar", async () => {
+      const origen = await abrirArchivo({
+        multiple: false,
+        filters: [{ name: "Copia cifrada", extensions: ["75bak"] }],
+      });
+      if (typeof origen !== "string") return "";
+      const respaldo = await api.restoreEncryptedBackup(origen, frase);
+      frase = "";
+      await onreload();
+      return `Restaurado. Lo anterior quedó guardado en ${respaldo}`;
+    });
+
+  const temas: { value: Tema; label: string; detalle: string }[] = [
+    { value: "claro", label: "Claro", detalle: "Grises cálidos sobre fondo claro." },
+    { value: "oscuro", label: "Oscuro", detalle: "Los mismos tokens, invertidos." },
+    { value: "sistema", label: "Como Windows", detalle: "Sigue el modo del sistema." },
+  ];
 
   function flash(msg: string) {
     saved = msg;
@@ -100,7 +186,7 @@
 
   <div class="layout">
     <nav class="subnav">
-      {#each [["reto", "Reto"], ["coach", "Coach"], ["metas", "Metas"], ["recordatorios", "Recordatorios"], ["sistema", "Sistema"]] as [id, label] (id)}
+      {#each [["reto", "Reto"], ["coach", "Coach"], ["metas", "Metas"], ["recordatorios", "Recordatorios"], ["apariencia", "Apariencia"], ["datos", "Datos"], ["sistema", "Sistema"]] as [id, label] (id)}
         <button class="item" class:on={section === id} onclick={() => (section = id as Section)}>
           {label}
         </button>
@@ -134,6 +220,7 @@
             Los pilares se definen al crear el reto. Para cambiarlos hay que empezar un intento
             nuevo — así el historial de este intento sigue siendo comparable consigo mismo.
           </p>
+          <button class="alinear" onclick={oncompletion}>Ver resumen del reto</button>
         {:else}
           <p class="muted">No hay un reto activo.</p>
         {/if}
@@ -263,6 +350,91 @@
             </div>
           </li>
         </ul>
+
+      {:else if section === "apariencia"}
+        <h2 class="section-title">Apariencia</h2>
+        <p class="muted">
+          Los dos temas usan la misma paleta: el color sigue significando lo mismo en ambos.
+        </p>
+        <div class="tones">
+          {#each temas as t (t.value)}
+            <button
+              class="tone"
+              class:on={tema.elegido === t.value}
+              onclick={() => cambiarTema(t.value)}
+            >
+              <span class="name">{t.label}{tema.elegido === t.value ? " ✓" : ""}</span>
+              <em>{t.detalle}</em>
+            </button>
+          {/each}
+        </div>
+
+      {:else if section === "datos"}
+        <h2 class="section-title">Datos</h2>
+
+        <ul class="rows">
+          <li>
+            <div class="stack grow">
+              <span>Exportar todo</span>
+              <span class="hint">
+                Historial completo, sin recortes. CSV para abrirlo en una hoja de cálculo, JSON
+                para procesarlo.
+              </span>
+            </div>
+            <div class="row">
+              <button onclick={() => exportar("csv")} disabled={ocupado === "csv"}>CSV</button>
+              <button onclick={() => exportar("json")} disabled={ocupado === "json"}>JSON</button>
+            </div>
+          </li>
+          <li>
+            <div class="stack grow">
+              <span>Copia local</span>
+              <span class="hint">
+                Instantánea junto a la base, sin cifrar. Se conservan las últimas siete.
+              </span>
+            </div>
+            <button onclick={instantanea} disabled={ocupado === "snapshot"}>Crear ahora</button>
+          </li>
+        </ul>
+
+        <div class="cifrado">
+          <span class="label">Copia cifrada</span>
+          <p class="hint">
+            Para sacar los datos de esta máquina. La frase no se guarda en ningún sitio: si la
+            pierdes, la copia no se puede recuperar. Son datos médicos, y por eso va cifrada.
+          </p>
+          <div class="row">
+            <input
+              type="password"
+              placeholder="Frase de cifrado (mínimo 8 caracteres)"
+              bind:value={frase}
+              autocomplete="off"
+            />
+            <button onclick={copiaCifrada} disabled={frase.length < 8 || ocupado === "cifrar"}>
+              Crear copia
+            </button>
+            <button onclick={restaurar} disabled={frase.length < 8 || ocupado === "restaurar"}>
+              Restaurar
+            </button>
+          </div>
+          <p class="hint">
+            Restaurar sustituye todo lo que hay ahora. Antes de hacerlo se guarda una copia local
+            de lo actual, por si te arrepientes.
+          </p>
+        </div>
+
+        {#if copias.length > 0}
+          <ul class="rows">
+            {#each copias as c (c.name)}
+              <li>
+                <div class="stack grow">
+                  <span class="num">{c.name}</span>
+                  <span class="hint num">{c.sizeKb} KB</span>
+                </div>
+              </li>
+            {/each}
+          </ul>
+        {/if}
 
       {:else}
         <h2 class="section-title">Sistema</h2>
@@ -524,6 +696,31 @@
     color: var(--ink-muted);
     font-size: 13px;
     line-height: 18px;
+  }
+
+  .cifrado {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cifrado .row {
+    gap: 8px;
+  }
+
+  .cifrado input {
+    max-width: 320px;
+  }
+
+  .cifrado p {
+    margin: 0;
+  }
+
+  .alinear {
+    align-self: flex-start;
   }
 
   .danger-zone {

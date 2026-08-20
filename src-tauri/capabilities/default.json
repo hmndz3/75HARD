@@ -14,6 +14,7 @@
     "core:webview:allow-create-webview-window",
     "autostart:default",
     "notification:default",
+    "dialog:default",
     "global-shortcut:allow-is-registered"
   ]
 }

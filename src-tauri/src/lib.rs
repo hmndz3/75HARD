@@ -1,3 +1,4 @@
+pub mod backup;
 pub mod coach;
 pub mod commands;
 pub mod daycut;
@@ -34,6 +35,7 @@ pub fn run() {
             commands::window::open_main_spawned(app);
         }))
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
         // El atajo global abre la captura rápida desde cualquier lado. El
         // handler corre en el hilo del bucle de eventos, así que la ventana se
         // crea con la variante que despacha a otro hilo.
@@ -65,6 +67,22 @@ pub fn run() {
             commands::day::get_broken_streak,
             commands::reminders::get_reminders,
             commands::reminders::set_reminder,
+            commands::stats::get_sleep_stats,
+            commands::stats::get_workout_stats,
+            commands::stats::get_glucose_stats,
+            commands::stats::get_body_stats,
+            commands::stats::get_correlations,
+            commands::stats::get_completion,
+            commands::stats::get_doctor_report,
+            commands::data::export_data,
+            commands::data::add_progress_photo,
+            commands::data::list_progress_photos,
+            commands::data::read_progress_photo,
+            commands::data::delete_progress_photo,
+            commands::data::backup_now,
+            commands::data::list_backups,
+            commands::data::create_encrypted_backup,
+            commands::data::restore_encrypted_backup,
             commands::sleep::preview_sleep,
             commands::sleep::save_morning_checkin,
             commands::meals::add_meal,

@@ -4,10 +4,12 @@ pub mod daycut;
 pub mod db;
 pub mod error;
 pub mod ram;
+pub mod scheduler;
 pub mod tray;
 
 use tauri::{Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 use crate::error::AppError;
 
@@ -31,6 +33,19 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             commands::window::open_main_spawned(app);
         }))
+        .plugin(tauri_plugin_notification::init())
+        // El atajo global abre la captura rápida desde cualquier lado. El
+        // handler corre en el hilo del bucle de eventos, así que la ventana se
+        // crea con la variante que despacha a otro hilo.
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    if event.state == ShortcutState::Pressed {
+                        commands::window::open_quick_spawned(app);
+                    }
+                })
+                .build(),
+        )
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             // Arranca minimizada en bandeja: no queremos una ventana en la cara
@@ -47,6 +62,9 @@ pub fn run() {
             commands::day::delete_entry,
             commands::day::get_missing_days,
             commands::day::apply_missing_days,
+            commands::day::get_broken_streak,
+            commands::reminders::get_reminders,
+            commands::reminders::set_reminder,
             commands::sleep::preview_sleep,
             commands::sleep::save_morning_checkin,
             commands::meals::add_meal,
@@ -88,6 +106,26 @@ pub fn run() {
 
             tray::build(app.handle())?;
 
+            // El atajo se guarda en ajustes para poder cambiarlo. Si otra app
+            // ya lo tiene tomado, se anota el motivo y la UI lo muestra: es
+            // mejor decirlo que dejar una tecla que no hace nada.
+            let accel = db_setting(app.handle(), "hotkey_quick")
+                .unwrap_or_else(|| "Ctrl+Alt+H".to_string());
+            let registro = accel
+                .parse::<Shortcut>()
+                .map_err(|e| e.to_string())
+                .and_then(|s| app.global_shortcut().register(s).map_err(|e| e.to_string()));
+            set_db_setting(
+                app.handle(),
+                "hotkey_error",
+                &match &registro {
+                    Ok(()) => String::new(),
+                    Err(e) => e.clone(),
+                },
+            );
+
+            scheduler::start(app.handle());
+
             // Si Windows la arrancó sola, se queda en bandeja y no molesta.
             let silent = std::env::args().any(|a| a == "--bandeja");
             if !silent {
@@ -110,4 +148,19 @@ pub fn run() {
                 }
             }
         });
+}
+
+/// Lee un ajuste sin propagar errores: si algo falla, se usa el valor por
+/// defecto de quien llama.
+fn db_setting(app: &tauri::AppHandle, key: &str) -> Option<String> {
+    let db = app.state::<db::Db>();
+    db.with(|c| db::queries::get_setting(c, key))
+        .ok()
+        .flatten()
+        .filter(|v| !v.trim().is_empty())
+}
+
+fn set_db_setting(app: &tauri::AppHandle, key: &str, value: &str) {
+    let db = app.state::<db::Db>();
+    let _ = db.with(|c| db::queries::set_setting(c, key, value));
 }

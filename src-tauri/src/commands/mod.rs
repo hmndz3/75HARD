@@ -4,6 +4,7 @@
 pub mod day;
 pub mod glucose;
 pub mod meals;
+pub mod reminders;
 pub mod settings;
 pub mod sleep;
 pub mod tracking;

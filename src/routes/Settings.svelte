@@ -2,7 +2,7 @@
   import { untrack } from "svelte";
 
   import * as api from "../lib/api";
-  import type { Bootstrap, Tone } from "../lib/types";
+  import type { Bootstrap, Reminder, Tone } from "../lib/types";
 
   let { boot, onreload }: { boot: Bootstrap; onreload: () => Promise<void> } = $props();
 
@@ -14,10 +14,29 @@
   let error = $state("");
   let saved = $state("");
 
+  let reminders = $state<Reminder[]>([]);
+
   api
     .isAutostartEnabled()
     .then((v) => (autostart = v))
     .catch(() => {});
+
+  api
+    .getReminders()
+    .then((r) => (reminders = r))
+    .catch((e) => (error = e instanceof Error ? e.message : String(e)));
+
+  async function cambiarRecordatorio(id: string, cambio: { enabled?: boolean; timeOfDay?: string }) {
+    error = "";
+    try {
+      reminders = await api.setReminder({ id, ...cambio });
+      flash("Guardado");
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+  }
+
+  const notificacionesOn = $derived(settings.notifications !== "0");
 
   function flash(msg: string) {
     saved = msg;
@@ -162,17 +181,87 @@
       {:else if section === "recordatorios"}
         <h2 class="section-title">Recordatorios</h2>
         <p class="muted">
-          Las notificaciones programadas y el atajo global de captura rápida son la Fase 1.
-          Todavía no están conectados, y prefiero decírtelo aquí antes que dejarte interruptores
-          que no hacen nada.
+          La app te busca a ti. Antes de avisar mira si el pilar ya está cubierto: si registraste
+          el ejercicio, el recordatorio de la tarde no suena.
         </p>
-        <ul class="rows disabled">
-          {#each [["Check-in matutino", "07:00"], ["Recordatorio de comida", "12:30"], ["Recordatorio de ejercicio", "17:00"], ["Agua cada 2 horas", "—"], ["Check-in nocturno", "21:30"]] as [name, time] (name)}
+
+        <ul class="rows">
+          <li>
+            <div class="stack grow">
+              <span>Notificaciones</span>
+              <span class="hint">Interruptor general. Apagado, no suena nada.</span>
+            </div>
+            <button
+              class:primary={notificacionesOn}
+              onclick={() => save({ notifications: notificacionesOn ? "0" : "1" })}
+            >
+              {notificacionesOn ? "Activadas" : "Desactivadas"}
+            </button>
+          </li>
+        </ul>
+
+        <ul class="rows" class:disabled={!notificacionesOn}>
+          {#each reminders as r (r.id)}
             <li>
-              <span class="grow">{name}</span>
-              <span class="num muted">{time}</span>
+              <button
+                class="toggle"
+                class:on={r.enabled}
+                aria-pressed={r.enabled}
+                aria-label="{r.enabled ? 'Desactivar' : 'Activar'} {r.label}"
+                onclick={() => cambiarRecordatorio(r.id, { enabled: !r.enabled })}
+              >
+                <span class="knob"></span>
+              </button>
+              <div class="stack grow">
+                <span>{r.label}</span>
+                <span class="hint">{r.description}</span>
+              </div>
+              {#if r.intervalBased}
+                <span class="num muted">cada {settings.water_every_hours ?? "2"} h</span>
+              {:else}
+                <input
+                  class="hora num"
+                  type="time"
+                  value={r.timeOfDay}
+                  onchange={(e) =>
+                    cambiarRecordatorio(r.id, {
+                      timeOfDay: (e.currentTarget as HTMLInputElement).value,
+                    })}
+                />
+              {/if}
             </li>
           {/each}
+        </ul>
+
+        <ul class="rows">
+          <li>
+            <div class="stack grow">
+              <span>Horario de silencio</span>
+              <span class="hint">
+                Entre estas horas no suena nada, aunque toque. Por defecto de 22:00 a 07:00.
+              </span>
+            </div>
+            <div class="row">
+              <input
+                class="corta num"
+                type="number"
+                min="0"
+                max="23"
+                value={settings.quiet_start}
+                onchange={(e) =>
+                  save({ quiet_start: (e.currentTarget as HTMLInputElement).value })}
+              />
+              <span class="muted">a</span>
+              <input
+                class="corta num"
+                type="number"
+                min="0"
+                max="23"
+                value={settings.quiet_end}
+                onchange={(e) => save({ quiet_end: (e.currentTarget as HTMLInputElement).value })}
+              />
+            </div>
+          </li>
         </ul>
 
       {:else}
@@ -189,9 +278,25 @@
           </li>
           <li>
             <div class="stack grow">
+              <span>Atajo global</span>
+              <span class="hint">
+                {#if boot.settings.hotkey_error}
+                  <span class="s-critical">
+                    No se pudo registrar: {boot.settings.hotkey_error}. Probablemente otra app ya
+                    lo tiene tomado.
+                  </span>
+                {:else}
+                  Abre la captura rápida desde cualquier lado, sin cambiar de ventana.
+                {/if}
+              </span>
+            </div>
+            <kbd class="accel">{boot.settings.hotkey_quick ?? "Ctrl+Alt+H"}</kbd>
+          </li>
+          <li>
+            <div class="stack grow">
               <span>Ventana de captura rápida</span>
               <span class="hint">
-                También está en el menú de la bandeja. El atajo global de teclado llega en la Fase 1.
+                También está en el menú de la bandeja y en el atajo global de aquí arriba.
               </span>
             </div>
             <button onclick={() => api.openQuickEntry()}>Abrir</button>
@@ -340,6 +445,52 @@
 
   .narrow {
     width: 120px;
+  }
+
+  .hora {
+    width: 120px;
+  }
+
+  .corta {
+    width: 72px;
+  }
+
+  /* Interruptor rectangular con radio 6px, nunca una píldora. */
+  .toggle {
+    width: 38px;
+    height: 22px;
+    flex: none;
+    padding: 2px;
+    border-radius: 6px;
+    background: var(--surface-sunken);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .toggle.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    justify-content: flex-end;
+  }
+
+  .knob {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    display: block;
+  }
+
+  .accel {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    padding: 4px 8px;
+    color: var(--ink-secondary);
+    background: var(--surface-sunken);
+    white-space: nowrap;
   }
 
   .tones {

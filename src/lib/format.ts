@@ -1,4 +1,4 @@
-import type { DayStatus, PillarStatus, Severity } from "./types";
+import type { CellStatus, DayStatus, PillarStatus, Severity } from "./types";
 
 /** "6h 40min" — mismo formato que daycut::format_minutes en Rust. */
 export function minutes(total: number): string {
@@ -24,6 +24,13 @@ export function litres(ml: number): string {
 /** Peso siempre a un decimal: la báscula no mide más y el float no debe verse. */
 export function kg(value: number | null): string {
   return value === null ? "—" : `${value.toFixed(1)} kg`;
+}
+
+/** "a, b y c" — misma redacción que coach::join_es en Rust. */
+export function joinEs(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
 }
 
 /** "1 parcial" / "3 parciales" */
@@ -70,6 +77,27 @@ export const statusColor: Record<DayStatus, string> = {
   skipped: "var(--border-strong)",
   pending: "var(--warning)",
   empty: "var(--surface-sunken)",
+};
+
+/** Los cinco estados del heatmap de 75 días (P5). */
+export const cellLabel: Record<CellStatus, string> = {
+  complete: "Completo",
+  partial: "Parcial",
+  failed: "Fallido",
+  skipped: "Pausado",
+  pending: "Sin cerrar",
+  empty: "Sin registrar",
+  future: "Por venir",
+};
+
+export const cellColor: Record<CellStatus, string> = {
+  complete: "var(--good)",
+  partial: "var(--warning)",
+  failed: "var(--critical)",
+  skipped: "var(--border-strong)",
+  pending: "var(--warning)",
+  empty: "var(--surface-sunken)",
+  future: "var(--surface-sunken)",
 };
 
 export const severityClass: Record<Severity, string> = {

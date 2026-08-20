@@ -8,6 +8,7 @@
   import Settings from "./routes/Settings.svelte";
   import Onboarding from "./routes/Onboarding.svelte";
   import Recovery from "./routes/Recovery.svelte";
+  import BrokenStreak from "./routes/BrokenStreak.svelte";
   import QuickEntry from "./routes/QuickEntry.svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -24,6 +25,7 @@
   let showRecovery = $state(false);
   let route = $state<"hoy" | "historial" | "estadisticas" | "ajustes">("hoy");
   let openDate = $state<string | null>(null);
+  let brokenDate = $state<string | null>(null);
   let fatal = $state("");
 
   async function load() {
@@ -47,6 +49,7 @@
 
   function goto(to: string) {
     openDate = null;
+    brokenDate = null;
     route = to as typeof route;
   }
 </script>
@@ -70,6 +73,23 @@
 {:else if boot.needsOnboarding}
   <TitleBar subtitle="Nuevo reto" />
   <Onboarding {boot} ondone={load} />
+{:else if brokenDate}
+  <TitleBar subtitle="Racha rota" />
+  <BrokenStreak
+    date={brokenDate}
+    onhistory={() => {
+      brokenDate = null;
+      route = "historial";
+    }}
+    onrestart={async () => {
+      brokenDate = null;
+      await load();
+    }}
+    ondismiss={async () => {
+      brokenDate = null;
+      await refreshToday();
+    }}
+  />
 {:else if view}
   <Shell
     {route}
@@ -86,7 +106,7 @@
         }}
       />
     {:else if route === "hoy"}
-      <Today {view} onupdate={(v) => (view = v)} />
+      <Today {view} onupdate={(v) => (view = v)} onbroken={(d) => (brokenDate = d)} />
     {:else if route === "historial"}
       <History onopenday={(d) => (openDate = d)} />
     {:else if route === "estadisticas"}

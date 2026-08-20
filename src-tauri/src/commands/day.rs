@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use tauri::State;
 
 use crate::commands::resolve_date;
-use crate::db::models::{DayDetail, DayRow, HistorySummary, MissingDay, TodayView};
+use crate::db::models::{
+    BrokenStreak, DayDetail, DayRow, HeatmapCell, HistorySummary, MissingDay, TodayView,
+};
 use crate::db::queries;
 use crate::db::Db;
 use crate::error::{AppError, AppResult};
@@ -28,6 +30,8 @@ pub fn get_day_detail(db: State<Db>, date: String) -> AppResult<DayDetail> {
 pub struct History {
     pub rows: Vec<DayRow>,
     pub summary: HistorySummary,
+    /// Las celdas del reto completo, para el heatmap de arriba (P5).
+    pub heatmap: Vec<HeatmapCell>,
 }
 
 #[tauri::command]
@@ -36,6 +40,7 @@ pub fn get_history(db: State<Db>, limit: Option<i64>) -> AppResult<History> {
         Ok(History {
             rows: queries::day_rows(c, limit.unwrap_or(120).clamp(1, 1000))?,
             summary: queries::history_summary(c)?,
+            heatmap: queries::heatmap(c)?,
         })
     })
 }
@@ -144,5 +149,14 @@ pub fn apply_missing_days(
         let today = queries::today(tx);
         queries::touch_last_open(tx, today)?;
         Ok(to_fill)
+    })
+}
+
+/// Datos de la pantalla de racha rota (P14) para un día concreto.
+#[tauri::command]
+pub fn get_broken_streak(db: State<Db>, date: Option<String>) -> AppResult<BrokenStreak> {
+    db.with(|c| {
+        let d = resolve_date(c, date)?;
+        queries::broken_streak(c, d)
     })
 }

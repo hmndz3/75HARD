@@ -4,6 +4,7 @@
 
 export type Severity = "good" | "neutral" | "warning" | "serious" | "critical";
 export type DayStatus = "pending" | "complete" | "failed" | "skipped" | "empty";
+export type CellStatus = DayStatus | "partial" | "future";
 export type PillarStatus = "done" | "partial" | "missing";
 export type Tone = "suave" | "directo" | "duro";
 
@@ -133,6 +134,7 @@ export interface TodayView {
 
   pillars: PillarState[];
   coach: CoachMessage;
+  hoursLeft: number;
   morningDone: boolean;
   eveningDone: boolean;
 }
@@ -157,9 +159,44 @@ export interface HistorySummary {
   skipped: number;
 }
 
+export interface HeatmapCell {
+  date: string;
+  dayNumber: number;
+  status: CellStatus;
+}
+
 export interface History {
   rows: DayRow[];
   summary: HistorySummary;
+  heatmap: HeatmapCell[];
+}
+
+export interface Reminder {
+  id: string;
+  kind: string;
+  label: string;
+  description: string;
+  timeOfDay: string;
+  enabled: boolean;
+  intervalBased: boolean;
+}
+
+export interface ChallengeTotals {
+  daysSurvived: number;
+  workouts: number;
+  avgSleepMin: number | null;
+  weightDeltaKg: number | null;
+  workHours: number;
+}
+
+export interface BrokenStreak {
+  dayNumber: number;
+  date: string;
+  weekdayLabel: string;
+  failedPillars: string[];
+  totals: ChallengeTotals;
+  nextAttempt: number;
+  message: CoachMessage;
 }
 
 export interface DayDetail {

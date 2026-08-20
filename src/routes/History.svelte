@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Heatmap from "../lib/components/Heatmap.svelte";
   import * as api from "../lib/api";
   import { kg, litres, minutesShort, plural, statusColor, statusLabel } from "../lib/format";
   import type { History } from "../lib/types";
@@ -35,6 +36,24 @@
 </script>
 
 <div class="page">
+  {#if data && data.heatmap.length > 0}
+    <div class="card flush">
+      <div class="card-head">
+        <span class="label">{data.heatmap.length} días</span>
+        <span class="figures">
+          <span class="num">{plural(data.summary.complete, "completo", "completos")}</span>
+          <span class="sep">·</span>
+          <span class="num">{plural(data.summary.partial, "parcial", "parciales")}</span>
+          <span class="sep">·</span>
+          <span class="num">{plural(data.summary.failed, "fallido", "fallidos")}</span>
+        </span>
+      </div>
+      <div class="mapa">
+        <Heatmap cells={data.heatmap} onopen={onopenday} />
+      </div>
+    </div>
+  {/if}
+
   <div class="card flush">
     <div class="card-head">
       <h1 class="section-title">Historial</h1>
@@ -125,6 +144,13 @@
 <style>
   .page {
     max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mapa {
+    padding: 20px;
   }
 
   .figures {

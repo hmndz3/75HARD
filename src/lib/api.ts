@@ -4,10 +4,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
   Bootstrap,
+  BrokenStreak,
   Challenge,
   CoachMessage,
   DayDetail,
   History,
+  Reminder,
   MissingAction,
   MissingDay,
   Rules,
@@ -60,6 +62,17 @@ export const setDayNotes = (date: string, notes: string | null) =>
 
 export const deleteEntry = (kind: "meal" | "workout" | "glucose" | "reading" | "work", id: string) =>
   call<void>("delete_entry", { kind, id });
+
+// ------------------------------------------------------- racha rota (P14)
+
+export const getBrokenStreak = (date?: string) =>
+  call<BrokenStreak>("get_broken_streak", { date });
+
+// ------------------------------------------------------------ recordatorios
+
+export const getReminders = () => call<Reminder[]>("get_reminders");
+export const setReminder = (args: { id: string; enabled?: boolean; timeOfDay?: string }) =>
+  call<Reminder[]>("set_reminder", args);
 
 // --------------------------------------------------------- días sin registrar
 

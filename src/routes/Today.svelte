@@ -14,7 +14,13 @@
   let {
     view,
     onupdate,
-  }: { view: TodayView; onupdate: (v: TodayView) => void } = $props();
+    onbroken,
+  }: {
+    view: TodayView;
+    onupdate: (v: TodayView) => void;
+    /// Se dispara al cerrar el día como fallido: ahí entra la pantalla P14.
+    onbroken: (date: string) => void;
+  } = $props();
 
   let modal = $state<"morning" | "evening" | "entry" | null>(null);
   let entryTab = $state<EntryTab>("comida");
@@ -220,7 +226,11 @@
     onsaved={(v) => {
       onupdate(v);
       modal = null;
-      flash("Día cerrado");
+      if (v.status === "failed") {
+        onbroken(v.date);
+      } else {
+        flash("Día cerrado");
+      }
     }}
   />
 {:else if modal === "entry"}

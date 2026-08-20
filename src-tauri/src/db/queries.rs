@@ -5,7 +5,7 @@
 //! sola máquina: guardar hora local es lo correcto y evita sorpresas al leer la
 //! base con cualquier visor de SQLite.
 
-use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, Timelike};
 use rusqlite::{params, Connection, OptionalExtension};
 use uuid::Uuid;
 
@@ -1069,6 +1069,7 @@ pub fn today_view(conn: &Connection, date: NaiveDate) -> AppResult<TodayView> {
         mood: get_mood(conn, date)?,
         pillars,
         coach: coach_msg,
+        hours_left,
         morning_done,
         evening_done,
     })
@@ -1333,6 +1334,322 @@ pub fn missing_days(conn: &Connection, today_date: NaiveDate) -> AppResult<Vec<M
 
 pub fn touch_last_open(conn: &Connection, date: NaiveDate) -> AppResult<()> {
     set_setting(conn, "last_open_date", &date.format(DATE_FMT).to_string())
+}
+
+// ------------------------------------------------------- heatmap (P5)
+
+/// Las `target_days` celdas del reto activo, del día 1 al último.
+/// "future" son los días que aún no llegan; "partial" los que tienen algo
+/// registrado pero nunca se cerraron.
+pub fn heatmap(conn: &Connection) -> AppResult<Vec<HeatmapCell>> {
+    let Some(challenge) = active_challenge(conn)? else {
+        return Ok(vec![]);
+    };
+    let start = parse_date(&challenge.start_date)?;
+    let last = start + Duration::days(challenge.target_days - 1);
+    let today_date = today(conn);
+
+    let mut stmt = conn.prepare(
+        "SELECT d.date, d.status,
+                (d.morning_checkin_at IS NOT NULL
+                 OR EXISTS (SELECT 1 FROM sleep_log s WHERE s.date = d.date)
+                 OR EXISTS (SELECT 1 FROM meal m WHERE m.date = d.date)
+                 OR EXISTS (SELECT 1 FROM workout w WHERE w.date = d.date)
+                 OR EXISTS (SELECT 1 FROM water_log wl WHERE wl.date = d.date AND wl.ml > 0)
+                 OR EXISTS (SELECT 1 FROM reading_log r WHERE r.date = d.date)
+                 OR EXISTS (SELECT 1 FROM glucose_reading g WHERE g.date = d.date))
+         FROM day d WHERE d.date BETWEEN ?1 AND ?2",
+    )?;
+    let rows = stmt.query_map(
+        params![
+            start.format(DATE_FMT).to_string(),
+            last.format(DATE_FMT).to_string()
+        ],
+        |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, bool>(2)?,
+            ))
+        },
+    )?;
+
+    let mut known = std::collections::HashMap::new();
+    for row in rows {
+        let (date, status, activity) = row?;
+        known.insert(date, (status, activity));
+    }
+
+    let mut out = Vec::with_capacity(challenge.target_days as usize);
+    for offset in 0..challenge.target_days {
+        let date = start + Duration::days(offset);
+        let key = date.format(DATE_FMT).to_string();
+
+        let status = if date > today_date {
+            "future".to_string()
+        } else {
+            match known.get(&key) {
+                Some((s, _)) if s != "pending" => s.clone(),
+                Some((_, true)) => "partial".to_string(),
+                _ => "empty".to_string(),
+            }
+        };
+
+        out.push(HeatmapCell {
+            date: key,
+            day_number: offset + 1,
+            status,
+        });
+    }
+    Ok(out)
+}
+
+// -------------------------------------------------- recordatorios (Fase 1)
+
+/// Etiqueta y explicación de un recordatorio, derivadas del `kind`. Viven en
+/// código y no en la base para poder corregir la redacción sin migraciones.
+fn reminder_copy(kind: &str) -> (&'static str, &'static str) {
+    match kind {
+        "morning" => (
+            "Check-in matutino",
+            "A qué hora te dormiste y a qué hora despertaste.",
+        ),
+        "meal" => ("Recordatorio de comida", "Registra lo que comiste."),
+        "workout" => (
+            "Recordatorio de ejercicio",
+            "Antes de que se te vaya el día.",
+        ),
+        "water" => ("Agua", "Cada par de horas mientras estés despierto."),
+        "evening" => (
+            "Check-in nocturno",
+            "Cerrar el día como completo o fallido.",
+        ),
+        _ => ("Recordatorio", ""),
+    }
+}
+
+fn is_interval_kind(kind: &str) -> bool {
+    kind == "water"
+}
+
+pub fn reminders(conn: &Connection) -> AppResult<Vec<Reminder>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, kind, time_of_day, enabled FROM reminder
+         ORDER BY CASE kind
+            WHEN 'morning' THEN 1 WHEN 'meal' THEN 2 WHEN 'workout' THEN 3
+            WHEN 'water' THEN 4 WHEN 'evening' THEN 5 ELSE 6 END",
+    )?;
+    let rows = stmt.query_map([], |r| {
+        Ok((
+            r.get::<_, String>(0)?,
+            r.get::<_, String>(1)?,
+            r.get::<_, String>(2)?,
+            r.get::<_, i64>(3)?,
+        ))
+    })?;
+
+    let mut out = Vec::new();
+    for row in rows {
+        let (id, kind, time_of_day, enabled) = row?;
+        let (label, description) = reminder_copy(&kind);
+        out.push(Reminder {
+            interval_based: is_interval_kind(&kind),
+            label: label.to_string(),
+            description: description.to_string(),
+            id,
+            kind,
+            time_of_day,
+            enabled: enabled != 0,
+        });
+    }
+    Ok(out)
+}
+
+pub fn set_reminder(
+    conn: &Connection,
+    id: &str,
+    enabled: Option<bool>,
+    time_of_day: Option<&str>,
+) -> AppResult<()> {
+    if let Some(t) = time_of_day {
+        if chrono::NaiveTime::parse_from_str(t, "%H:%M").is_err() {
+            return Err(AppError::invalid(format!(
+                "hora no válida: {t} (usa HH:MM)"
+            )));
+        }
+        conn.execute(
+            "UPDATE reminder SET time_of_day = ?2 WHERE id = ?1",
+            params![id, t],
+        )?;
+    }
+    if let Some(e) = enabled {
+        conn.execute(
+            "UPDATE reminder SET enabled = ?2 WHERE id = ?1",
+            params![id, e as i64],
+        )?;
+    }
+    Ok(())
+}
+
+/// Recordatorios que deberían dispararse en este instante. No decide el texto:
+/// de eso se encarga el planificador, que sí mira los datos del día.
+pub fn due_reminders(conn: &Connection, now: NaiveDateTime) -> AppResult<Vec<Reminder>> {
+    if get_int(conn, "notifications", 1) == 0 {
+        return Ok(vec![]);
+    }
+
+    // Horario de silencio: de `quiet_start` a `quiet_end`. Nada suena ahí.
+    let hour = now.hour() as i64;
+    let quiet_start = get_int(conn, "quiet_start", 22);
+    let quiet_end = get_int(conn, "quiet_end", 7);
+    if hour >= quiet_start || hour < quiet_end {
+        return Ok(vec![]);
+    }
+
+    let every_hours = get_int(conn, "water_every_hours", 2).max(1);
+    let logical_today = daycut::logical_date(now, cutoff_hour(conn));
+
+    let mut out = Vec::new();
+    for r in reminders(conn)? {
+        if !r.enabled {
+            continue;
+        }
+        let last: Option<String> = conn
+            .query_row(
+                "SELECT last_fired_at FROM reminder WHERE id = ?1",
+                [&r.id],
+                |row| row.get(0),
+            )
+            .optional()?
+            .flatten();
+        let last_dt = last
+            .as_deref()
+            .and_then(|s| NaiveDateTime::parse_from_str(s, TS_FMT).ok());
+
+        let debe = if r.interval_based {
+            match last_dt {
+                Some(prev) => (now - prev).num_hours() >= every_hours,
+                None => true,
+            }
+        } else {
+            let Ok(hora) = chrono::NaiveTime::parse_from_str(&r.time_of_day, "%H:%M") else {
+                continue;
+            };
+            // Ya pasó su hora hoy y no ha sonado en este día lógico.
+            now.time() >= hora
+                && last_dt
+                    .map(|prev| daycut::logical_date(prev, cutoff_hour(conn)) < logical_today)
+                    .unwrap_or(true)
+        };
+
+        if debe {
+            out.push(r);
+        }
+    }
+    Ok(out)
+}
+
+pub fn mark_reminder_fired(conn: &Connection, id: &str, now: NaiveDateTime) -> AppResult<()> {
+    conn.execute(
+        "UPDATE reminder SET last_fired_at = ?2 WHERE id = ?1",
+        params![id, now.format(TS_FMT).to_string()],
+    )?;
+    Ok(())
+}
+
+// ------------------------------------------------------ racha rota (P14)
+
+/// Cifras acumuladas del intento activo. Son lo que se le enseña a alguien que
+/// acaba de romper la racha: lo que construyó, no lo que perdió.
+pub fn challenge_totals(conn: &Connection) -> AppResult<ChallengeTotals> {
+    let Some(challenge) = active_challenge(conn)? else {
+        return Ok(ChallengeTotals {
+            days_survived: 0,
+            workouts: 0,
+            avg_sleep_min: None,
+            weight_delta_kg: None,
+            work_hours: 0.0,
+        });
+    };
+    let start = challenge.start_date.clone();
+    let end = today(conn).format(DATE_FMT).to_string();
+
+    let workouts: i64 = conn.query_row(
+        "SELECT count(*) FROM workout WHERE date BETWEEN ?1 AND ?2",
+        params![start, end],
+        |r| r.get(0),
+    )?;
+    let avg_sleep: Option<f64> = conn.query_row(
+        "SELECT avg(minutes) FROM sleep_log WHERE date BETWEEN ?1 AND ?2",
+        params![start, end],
+        |r| r.get(0),
+    )?;
+    let work_min: i64 = conn.query_row(
+        "SELECT coalesce(sum(minutes), 0) FROM work_session WHERE date BETWEEN ?1 AND ?2",
+        params![start, end],
+        |r| r.get(0),
+    )?;
+    let days_survived: i64 = conn.query_row(
+        "SELECT count(*) FROM day WHERE status = 'complete' AND date BETWEEN ?1 AND ?2",
+        params![start, end],
+        |r| r.get(0),
+    )?;
+
+    // El peso se compara primer registro contra último, no máximos y mínimos.
+    let primero: Option<f64> = conn
+        .query_row(
+            "SELECT kg FROM weight_log WHERE date BETWEEN ?1 AND ?2 ORDER BY date ASC LIMIT 1",
+            params![start, end],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let ultimo: Option<f64> = conn
+        .query_row(
+            "SELECT kg FROM weight_log WHERE date BETWEEN ?1 AND ?2 ORDER BY date DESC LIMIT 1",
+            params![start, end],
+            |r| r.get(0),
+        )
+        .optional()?;
+
+    Ok(ChallengeTotals {
+        days_survived,
+        workouts,
+        avg_sleep_min: avg_sleep.map(|m| m.round() as i64),
+        weight_delta_kg: match (primero, ultimo) {
+            (Some(a), Some(b)) if (b - a).abs() > 0.05 => Some(b - a),
+            _ => None,
+        },
+        work_hours: (work_min as f64 / 60.0 * 10.0).round() / 10.0,
+    })
+}
+
+/// Reúne todo lo de la pantalla de racha rota para un día fallido concreto.
+pub fn broken_streak(conn: &Connection, date: NaiveDate) -> AppResult<BrokenStreak> {
+    let view = today_view(conn, date)?;
+    let failed: Vec<String> = view
+        .pillars
+        .iter()
+        .filter(|p| p.required && p.status != "done")
+        .map(|p| pillar_noun(&p.key, &p.label))
+        .collect();
+
+    let day_number = view.day_number.unwrap_or(0);
+    let next_attempt = challenge_count(conn)? + 1;
+    let motivo = if failed.is_empty() {
+        "Cerraste el día como fallido.".to_string()
+    } else {
+        format!("Fallaste {}.", coach::join_es(&failed))
+    };
+
+    Ok(BrokenStreak {
+        day_number,
+        date: view.date.clone(),
+        weekday_label: view.weekday_label.clone(),
+        failed_pillars: failed,
+        totals: challenge_totals(conn)?,
+        next_attempt,
+        message: coach::streak_broken_message(day_number, next_attempt, &motivo),
+    })
 }
 
 #[cfg(test)]

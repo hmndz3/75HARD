@@ -12,7 +12,7 @@ de datos, fases y decisiones) y [`docs/75HARD-DISENO.md`](docs/75HARD-DISENO.md)
 
 ---
 
-## Estado: Fase 0 completa
+## Estado: Fases 0 y 1 completas
 
 Lo que ya funciona:
 
@@ -28,14 +28,21 @@ Lo que ya funciona:
 - **Ajustes** (P11): tono del coach, metas, autoarranque.
 - Registro de comida, snack, ejercicio, glucosa, agua, lectura, trabajo, peso,
   ánimo y energía. Escritura inmediata en cada acción.
+- **Heatmap de 75 días** en Historial, con los cinco estados y leyenda.
+- **Notificaciones programadas** que miran los datos del día antes de molestar:
+  si ya registraste el ejercicio, el aviso de las 17:00 no suena. Configurables
+  desde Ajustes, con interruptor general y horario de silencio.
+- **Atajo global `Ctrl+Alt+H`** para la captura rápida desde cualquier app.
+- **Pantalla de racha rota** (P14) al cerrar un día como fallido.
+
+El detalle de la Fase 1 está en [`docs/FASE-1-AVANCE.md`](docs/FASE-1-AVANCE.md).
 
 Pendiente por fase, tal y como está en el spec:
 
 | Fase | Qué falta |
 |---|---|
-| 1 | Notificaciones programadas, hotkey global, heatmap de 75 días, racha rota (P14) |
-| 2 | Las gráficas (P7–P10) y export CSV/JSON |
-| 3 | PDF para el médico, correlaciones, fotos de progreso, backup cifrado, tema oscuro |
+| 2 | Las gráficas (P7–P10), export CSV/JSON |
+| 3 | PDF para el médico, correlaciones, fotos de progreso, backup cifrado, tema oscuro, reto completado (P15) |
 
 El tema oscuro ya tiene sus tokens definidos en `src/app.css`; solo falta el
 interruptor.
@@ -105,11 +112,12 @@ src/                    UI — Svelte 5 + TypeScript, CSS puro con variables
 src-tauri/
   src/coach.rs          reglas de regaño/felicitación (puras, con tests)
   src/daycut.rs         el día corta a las 4:00 AM (con tests)
+  src/scheduler.rs      tick de 60 s que dispara los recordatorios
   src/ram.rs            devolver memoria al cerrar la ventana
   src/tray.rs           icono de bandeja
   src/db/               conexión, migraciones, modelos y toda la SQL
   src/commands/         comandos expuestos a la UI
-  migrations/           001_init.sql
+  migrations/           001_init.sql, 002_reminders.sql
   examples/seed_demo.rs base de ejemplo para revisar la interfaz
 docs/                   spec y sistema de diseño
 ```

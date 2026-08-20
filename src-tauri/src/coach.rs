@@ -195,7 +195,7 @@ pub fn streak_broken_message(day_number: i64, attempt: i64, reason: &str) -> Coa
 }
 
 /// "a, b y c" — une una lista en español natural.
-fn join_es(items: &[String]) -> String {
+pub(crate) fn join_es(items: &[String]) -> String {
     match items {
         [] => String::new(),
         [one] => one.clone(),

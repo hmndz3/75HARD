@@ -192,6 +192,8 @@ pub struct TodayView {
 
     pub pillars: Vec<PillarState>,
     pub coach: CoachMessage,
+    /// Horas hasta el corte del día siguiente.
+    pub hours_left: i64,
     pub morning_done: bool,
     pub evening_done: bool,
 }
@@ -239,6 +241,57 @@ pub struct DayDetail {
     pub water_ml: i64,
     pub weight_kg: Option<f64>,
     pub mood: Option<MoodLog>,
+}
+
+/// Una celda del heatmap de 75 días (P5). El estado incluye dos valores que no
+/// existen en la tabla `day`: "future" para los días que aún no llegan y
+/// "partial" para los que tienen registros pero nunca se cerraron.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HeatmapCell {
+    pub date: String,
+    pub day_number: i64,
+    pub status: String,
+}
+
+/// Un recordatorio programado (Fase 1). `kind` manda: de él salen la etiqueta,
+/// el texto de la notificación y la condición para no molestar de más.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Reminder {
+    pub id: String,
+    pub kind: String,
+    pub label: String,
+    pub description: String,
+    pub time_of_day: String,
+    pub enabled: bool,
+    /// Los de intervalo (agua) no se programan a una hora fija.
+    pub interval_based: bool,
+}
+
+/// Las cifras del intento para la pantalla de racha rota (P14).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChallengeTotals {
+    pub days_survived: i64,
+    pub workouts: i64,
+    pub avg_sleep_min: Option<i64>,
+    pub weight_delta_kg: Option<f64>,
+    pub work_hours: f64,
+}
+
+/// Todo lo que necesita la pantalla de racha rota (P14).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BrokenStreak {
+    pub day_number: i64,
+    pub date: String,
+    pub weekday_label: String,
+    /// Pilares obligatorios que se fallaron ese día, ya legibles.
+    pub failed_pillars: Vec<String>,
+    pub totals: ChallengeTotals,
+    pub next_attempt: i64,
+    pub message: CoachMessage,
 }
 
 /// Un día calendario que pasó sin que se abriera la app (P13).

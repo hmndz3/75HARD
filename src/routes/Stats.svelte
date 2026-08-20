@@ -5,9 +5,10 @@
   import WorkoutStats from "./stats/WorkoutStats.svelte";
   import GlucoseStats from "./stats/GlucoseStats.svelte";
   import BodyStats from "./stats/BodyStats.svelte";
+  import Correlations from "./stats/Correlations.svelte";
   import * as api from "../lib/api";
   import { todayIso } from "../lib/format";
-  import type { Correlation, Range } from "../lib/types";
+  import type { Range } from "../lib/types";
 
   let { onreport }: { onreport: () => void } = $props();
 
@@ -32,15 +33,6 @@
   let aviso = $state("");
   let error = $state("");
 
-  let correlaciones = $state<Correlation[] | null>(null);
-  $effect(() => {
-    if (tab !== "correlaciones" || correlaciones) return;
-    api
-      .getCorrelations()
-      .then((c) => (correlaciones = c))
-      .catch((e) => (error = e instanceof Error ? e.message : String(e)));
-  });
-
   async function exportar(formato: "csv" | "json") {
     error = "";
     try {
@@ -55,13 +47,6 @@
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     }
-  }
-
-  /** Una r suelta no dice nada; esto la traduce a lenguaje humano. */
-  function fuerza(r: number): string {
-    const a = Math.abs(r);
-    const grado = a >= 0.7 ? "fuerte" : a >= 0.4 ? "moderada" : "débil";
-    return `Relación ${grado} y ${r >= 0 ? "positiva" : "negativa"}`;
   }
 </script>
 
@@ -100,43 +85,7 @@
     {:else if tab === "cuerpo"}
       <BodyStats {range} />
     {:else}
-      <div class="card">
-        <span class="label">Correlaciones</span>
-        <p class="muted">
-          Relaciones observadas entre tus propios datos. <strong>Correlación no es causalidad</strong>:
-          esto no dice que una cosa cause la otra, solo que se mueven juntas.
-        </p>
-        {#if correlaciones === null}
-          <p class="muted">Calculando…</p>
-        {:else if correlaciones.length === 0}
-          <p class="hint">
-            Todavía no hay suficientes pares de datos. Hacen falta al menos cinco días con las
-            dos cosas registradas para que el número signifique algo.
-          </p>
-        {:else}
-          <ul class="corr">
-            {#each correlaciones as c (c.label)}
-              <li>
-                <div class="stack grow">
-                  <span class="nombre">{c.label}</span>
-                  <span class="hint">{c.caption}</span>
-                </div>
-                <div class="stack derecha-txt">
-                  <span class="num r">r = {c.r.toFixed(2)}</span>
-                  <span class="hint">{fuerza(c.r)} · n = {c.n}</span>
-                </div>
-                <div class="barra" aria-hidden="true">
-                  <div
-                    class="relleno"
-                    style:width="{Math.abs(c.r) * 100}%"
-                    style:background={c.r >= 0 ? "var(--accent)" : "#c05a30"}
-                  ></div>
-                </div>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
+      <Correlations />
     {/if}
   </div>
 </div>
@@ -215,61 +164,15 @@
     gap: 16px;
   }
 
-  .card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
 
-  .corr {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
 
-  .corr li {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px 16px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-  }
 
-  .corr li:last-child {
-    border-bottom: none;
-  }
 
-  .stack {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
 
-  .derecha-txt {
-    text-align: right;
-  }
 
-  .nombre {
-    font-weight: 500;
-  }
 
-  .r {
-    font-size: 18px;
-    font-weight: 600;
-  }
 
-  .barra {
-    grid-column: 1 / -1;
-    height: 6px;
-    background: var(--surface-sunken);
-    border-radius: 3px;
-    overflow: hidden;
-  }
 
-  .relleno {
-    height: 100%;
-  }
 
   .error {
     margin: 0;
@@ -281,7 +184,4 @@
     color: var(--good);
   }
 
-  .hint {
-    margin: 0;
-  }
 </style>

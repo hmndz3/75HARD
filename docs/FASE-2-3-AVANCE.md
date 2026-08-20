@@ -53,10 +53,13 @@ color.
 
 ### Correlaciones
 
-Quinta pestaña. Pearson sobre sueño↔energía, sueño↔glucosa en ayunas y
-ejercicio↔ánimo, con la r traducida a lenguaje humano ("relación moderada y
-positiva") y el número de pares. **Con menos de cinco pares no se muestra
-nada**: una r sobre cuatro puntos es ruido con decimales.
+Quinta pestaña. Una dispersión por cada par —sueño↔energía, sueño↔glucosa en
+ayunas y ejercicio↔ánimo— con línea de tendencia, la r traducida a lenguaje
+humano ("relación moderada y positiva") y el número de días con ambos datos.
+
+Las tres se muestran siempre. **Con menos de cinco pares no se calcula la r**
+—sobre cuatro puntos sería ruido con decimales— pero la dispersión sí se pinta
+y la tarjeta dice cuántos días llevas.
 
 ### Export
 
@@ -153,6 +156,51 @@ resumen entero.
 
 Binario de 4.9 MB. Sigue muy por debajo del límite de 15 MB pese a Chart.js,
 las notificaciones, el atajo global, el cifrado y el planificador.
+
+---
+
+## Correcciones posteriores
+
+Dos cosas que salieron al usar la app de verdad, ya arregladas:
+
+### No se podía registrar ejercicio
+
+`bind:value` sobre un `<input type="number">` **no guarda texto**: guarda un
+`number`, o `null` si vacías el campo. El helper que leía las calorías hacía
+`.trim()` como si fuera un string, y reventaba con *"v.trim is not a function"*
+en cuanto escribías las calorías quemadas.
+
+En comida no se notaba porque el campo de calorías está escondido detrás del
+`+`, así que la variable seguía siendo el `""` inicial.
+
+El arreglo es un único helper compartido, `numeroOpcional()` en
+`src/lib/format.ts`, que acepta las tres formas. Se aplicó también donde iba a
+pasar lo mismo sin que nadie lo hubiera notado todavía: **el peso del check-in
+matutino** y los campos en línea del cierre nocturno.
+
+> Si añades un campo numérico, léelo con `numeroOpcional()`. No con `.trim()`.
+
+### Las correlaciones eran solo texto
+
+Tenían razón en que así no servían: un número y una barra no dicen nada. Ahora
+cada correlación es una **dispersión de verdad** con sus puntos, línea de
+tendencia por mínimos cuadrados, ejes etiquetados y la r traducida a lenguaje
+humano.
+
+Y se devuelven **siempre las tres**, aunque no haya datos suficientes para
+calcular la r. Antes se ocultaba la que no llegaba al mínimo de cinco pares, y
+la pantalla se quedaba con un mensaje genérico que no distinguía entre "te
+falta registrar" y "la app está rota". Ahora cada tarjeta dice exactamente
+cuántos días con ambos datos lleva.
+
+### Y una que resultó no ser un bug
+
+Perseguí un rato un supuesto problema de zoom: las capturas salían con el
+contenido 1.5× y recortado. No era la app. El script de capturas era
+DPI-unaware y la pantalla está al 150%, así que Windows le mentía sobre el
+tamaño de la ventana y `PrintWindow` recortaba la esquina superior izquierda a
+resolución nativa. Llegué a tocar el zoom del WebView "para arreglarlo" y lo
+revertí en cuanto lo medí. La app nunca estuvo mal.
 
 ---
 

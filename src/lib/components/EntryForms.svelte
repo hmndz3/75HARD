@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as api from "../api";
-  import { glucoseContexts, nowClock, workoutKinds } from "../format";
+  import { glucoseContexts, nowClock, numeroOpcional, workoutKinds } from "../format";
 
   export type EntryTab = "comida" | "ejercicio" | "azucar" | "agua" | "lectura" | "trabajo";
 
@@ -34,40 +34,38 @@
   // Comida
   let mealKind = $state<"meal" | "snack">("meal");
   let mealText = $state("");
-  let mealCalories = $state("");
+  let mealCalories = $state<string | number | null>("");
   let showCalories = $state(false);
 
   // Ejercicio
   let workoutKind = $state("gym");
-  let workoutMin = $state("");
+  let workoutMin = $state<string | number | null>("");
   let workoutDesc = $state("");
   let workoutOutdoor = $state(false);
-  let workoutKcal = $state("");
+  let workoutKcal = $state<string | number | null>("");
 
   // Azúcar
-  let glucoseValue = $state("");
+  let glucoseValue = $state<string | number | null>("");
   let glucoseContext = $state("fasting");
   let glucoseNotes = $state("");
 
   // Agua
   const waterPresets = [250, 500, 750, 1000];
-  let waterMl = $state(500);
+  let waterMl = $state<string | number | null>(500);
 
   // Lectura
-  let pages = $state("");
+  let pages = $state<string | number | null>("");
   let book = $state("");
 
   // Trabajo
-  let workMin = $state("");
+  let workMin = $state<string | number | null>("");
   let workCategory = $state("Universidad");
   let workDesc = $state("");
 
-  const optional = (v: string): number | undefined => {
-    const t = v.trim();
-    if (!t) return undefined;
-    const n = Number(t);
-    return Number.isFinite(n) ? n : undefined;
-  };
+  const optional = numeroOpcional;
+
+  /** Igual, pero para los campos obligatorios: 0 si no hay nada que leer. */
+  const requerido = (v: string | number | null | undefined): number => numeroOpcional(v) ?? 0;
 
   async function save() {
     if (saving) return;
@@ -94,7 +92,7 @@
             time,
             kind: workoutKind,
             description: workoutDesc.trim() || undefined,
-            durationMin: Number(workoutMin),
+            durationMin: requerido(workoutMin),
             isOutdoor: workoutOutdoor,
             caloriesBurned: optional(workoutKcal),
           });
@@ -108,7 +106,7 @@
           await api.addGlucose({
             date,
             time,
-            valueMgdl: Number(glucoseValue),
+            valueMgdl: requerido(glucoseValue),
             context: glucoseContext,
             notes: glucoseNotes.trim() || undefined,
           });
@@ -118,13 +116,13 @@
           break;
 
         case "agua": {
-          const total = await api.addWater(waterMl, date);
+          const total = await api.addWater(requerido(waterMl), date);
           onsaved(`Agua: ${(total / 1000).toFixed(1)} L en total hoy`);
           break;
         }
 
         case "lectura":
-          await api.addReading({ date, pages: Number(pages), book: book.trim() || undefined });
+          await api.addReading({ date, pages: requerido(pages), book: book.trim() || undefined });
           onsaved(`${pages} páginas registradas`);
           pages = "";
           break;
@@ -133,7 +131,7 @@
           await api.addWorkSession({
             date,
             time,
-            minutes: Number(workMin),
+            minutes: requerido(workMin),
             category: workCategory,
             description: workDesc.trim() || undefined,
           });

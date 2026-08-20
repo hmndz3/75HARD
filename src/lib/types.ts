@@ -359,10 +359,14 @@ export interface BodyStats {
 }
 
 export interface Correlation {
+  key: string;
   label: string;
   caption: string;
-  r: number;
+  xLabel: string;
+  yLabel: string;
+  r: number | null;
   n: number;
+  points: XY[];
 }
 
 // -------------------------------------------------------- Fase 3

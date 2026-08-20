@@ -5,7 +5,7 @@
   import Scale15 from "../lib/components/Scale15.svelte";
   import StatusIcon from "../lib/components/StatusIcon.svelte";
   import * as api from "../lib/api";
-  import { severityClass } from "../lib/format";
+  import { numeroOpcional, severityClass } from "../lib/format";
   import type { SleepPreview, TodayView } from "../lib/types";
 
   let {
@@ -17,7 +17,9 @@
   // Valores iniciales: se leen una sola vez al abrir el modal.
   let bedtime = $state(untrack(() => view.sleep?.bedtime.slice(11, 16) ?? "23:30"));
   let wakeTime = $state(untrack(() => view.sleep?.wakeTime.slice(11, 16) ?? "06:30"));
-  let weight = $state(untrack(() => (view.weightKg !== null ? view.weightKg.toFixed(1) : "")));
+  let weight = $state<string | number | null>(
+    untrack(() => (view.weightKg !== null ? view.weightKg : ""))
+  );
   let mood = $state<number | null>(untrack(() => view.mood?.mood ?? null));
   let energy = $state<number | null>(untrack(() => view.mood?.energy ?? null));
 
@@ -52,12 +54,11 @@
     saving = true;
     error = "";
     try {
-      const kg = weight.trim() ? Number(weight) : undefined;
       const updated = await api.saveMorningCheckin({
         date: view.date,
         bedtime,
         wakeTime,
-        weightKg: Number.isFinite(kg) ? kg : undefined,
+        weightKg: numeroOpcional(weight),
         mood: mood ?? undefined,
         energy: energy ?? undefined,
       });

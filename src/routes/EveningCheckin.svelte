@@ -4,7 +4,7 @@
   import Modal from "../lib/components/Modal.svelte";
   import StatusIcon from "../lib/components/StatusIcon.svelte";
   import * as api from "../lib/api";
-  import { litres, minutes, pillarSeverity } from "../lib/format";
+  import { litres, minutes, numeroOpcional, pillarSeverity } from "../lib/format";
   import type { TodayView } from "../lib/types";
 
   let {
@@ -22,9 +22,9 @@
   let saving = $state(false);
 
   // Campos en línea para lo que falta: se llena sin salir de la pantalla.
-  let workoutMin = $state("");
+  let workoutMin = $state<string | number | null>("");
   let workoutKind = $state("gym");
-  let pages = $state("");
+  let pages = $state<string | number | null>("");
   let busy = $state("");
 
   const resumen = $derived([
@@ -96,14 +96,14 @@
       await api.addWorkout({
         date: view.date,
         kind: workoutKind,
-        durationMin: Number(workoutMin),
+        durationMin: numeroOpcional(workoutMin) ?? 0,
       });
       workoutMin = "";
     });
 
   const addReading = () =>
     run("reading", async () => {
-      await api.addReading({ date: view.date, pages: Number(pages) });
+      await api.addReading({ date: view.date, pages: numeroOpcional(pages) ?? 0 });
       pages = "";
     });
 

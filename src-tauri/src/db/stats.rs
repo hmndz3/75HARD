@@ -673,52 +673,82 @@ pub fn body_stats(conn: &Connection, range: &str) -> AppResult<BodyStats> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Correlation {
+    pub key: String,
     pub label: String,
     pub caption: String,
-    pub r: f64,
+    pub x_label: String,
+    pub y_label: String,
+    /// `None` cuando no hay pares suficientes o no hay varianza.
+    pub r: Option<f64>,
     pub n: i64,
+    /// Los pares en crudo, para poder dibujar la dispersión.
+    pub points: Vec<XY>,
 }
 
-/// Las tres correlaciones del §4 fase 3. Solo se devuelven las que tienen
-/// suficientes pares; una r calculada sobre cuatro puntos es ruido con
-/// decimales.
+/// Las tres correlaciones del §4 fase 3.
+///
+/// Se devuelven **siempre las tres**, con sus puntos, aunque todavía no haya
+/// datos para calcular la r. Una pantalla que se queda vacía no dice si te
+/// falta registrar o si la app está rota; una dispersión con cuatro puntos y
+/// un "faltan pares" sí.
 pub fn correlations(conn: &Connection) -> AppResult<Vec<Correlation>> {
-    let consultas: [(&str, &str, &str); 3] = [
-        (
-            "Sueño y energía",
-            "Más horas dormidas, ¿más energía al despertar?",
-            "SELECT s.minutes / 60.0, m.energy FROM sleep_log s
-             JOIN mood_log m ON m.date = s.date",
-        ),
-        (
-            "Sueño y glucosa en ayunas",
-            "Horas dormidas contra la lectura en ayunas del día siguiente.",
-            "SELECT s.minutes / 60.0, g.value_mgdl FROM sleep_log s
-             JOIN glucose_reading g ON g.date = s.date AND g.context = 'fasting'",
-        ),
-        (
-            "Ejercicio y ánimo",
-            "Minutos de ejercicio contra el ánimo de ese día.",
-            "SELECT sum(w.duration_min), m.mood FROM workout w
-             JOIN mood_log m ON m.date = w.date GROUP BY w.date, m.mood",
-        ),
+    struct Def {
+        key: &'static str,
+        label: &'static str,
+        caption: &'static str,
+        x: &'static str,
+        y: &'static str,
+        sql: &'static str,
+    }
+
+    let defs = [
+        Def {
+            key: "sueno-energia",
+            label: "Sueño y energía",
+            caption: "Horas dormidas contra la energía con la que amaneciste.",
+            x: "Horas dormidas",
+            y: "Energía (1-5)",
+            sql: "SELECT s.minutes / 60.0, m.energy * 1.0 FROM sleep_log s
+                  JOIN mood_log m ON m.date = s.date ORDER BY s.date",
+        },
+        Def {
+            key: "sueno-glucosa",
+            label: "Sueño y glucosa en ayunas",
+            caption: "Horas dormidas contra la lectura en ayunas de esa mañana.",
+            x: "Horas dormidas",
+            y: "mg/dL en ayunas",
+            sql: "SELECT s.minutes / 60.0, g.value_mgdl * 1.0 FROM sleep_log s
+                  JOIN glucose_reading g ON g.date = s.date AND g.context = 'fasting'
+                  ORDER BY s.date",
+        },
+        Def {
+            key: "ejercicio-animo",
+            label: "Ejercicio y ánimo",
+            caption: "Minutos de ejercicio contra el ánimo de ese día.",
+            x: "Minutos de ejercicio",
+            y: "Ánimo (1-5)",
+            sql: "SELECT sum(w.duration_min) * 1.0, m.mood * 1.0 FROM workout w
+                  JOIN mood_log m ON m.date = w.date GROUP BY w.date, m.mood ORDER BY w.date",
+        },
     ];
 
-    let mut out = Vec::new();
-    for (label, caption, sql) in consultas {
-        let mut stmt = conn.prepare(sql)?;
+    let mut out = Vec::with_capacity(defs.len());
+    for d in defs {
+        let mut stmt = conn.prepare(d.sql)?;
         let pares = stmt
             .query_map([], |r| Ok((r.get::<_, f64>(0)?, r.get::<_, f64>(1)?)))?
             .collect::<Result<Vec<_>, _>>()?;
 
-        if let Some(r) = pearson(&pares) {
-            out.push(Correlation {
-                label: label.to_string(),
-                caption: caption.to_string(),
-                r: (r * 100.0).round() / 100.0,
-                n: pares.len() as i64,
-            });
-        }
+        out.push(Correlation {
+            key: d.key.to_string(),
+            label: d.label.to_string(),
+            caption: d.caption.to_string(),
+            x_label: d.x.to_string(),
+            y_label: d.y.to_string(),
+            r: pearson(&pares).map(|v| (v * 100.0).round() / 100.0),
+            n: pares.len() as i64,
+            points: pares.iter().map(|(x, y)| XY { x: *x, y: *y }).collect(),
+        });
     }
     Ok(out)
 }

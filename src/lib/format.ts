@@ -26,6 +26,17 @@ export function kg(value: number | null): string {
   return value === null ? "—" : `${value.toFixed(1)} kg`;
 }
 
+/**
+ * Lee un campo numérico de formulario. `bind:value` sobre un `<input
+ * type="number">` guarda un number, o `null` al vaciarlo — nunca un string
+ * limpio. Tratarlo como texto revienta con "trim is not a function".
+ */
+export function numeroOpcional(v: string | number | null | undefined): number | undefined {
+  if (v === null || v === undefined || v === "") return undefined;
+  const n = typeof v === "number" ? v : Number(String(v).trim());
+  return Number.isFinite(n) ? n : undefined;
+}
+
 /** "a, b y c" — misma redacción que coach::join_es en Rust. */
 export function joinEs(items: string[]): string {
   if (items.length === 0) return "";

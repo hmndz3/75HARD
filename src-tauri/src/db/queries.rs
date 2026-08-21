@@ -1507,12 +1507,25 @@ fn is_interval_kind(kind: &str) -> bool {
     kind == "water"
 }
 
+/// Cómo se repite, resumido para la UI.
+fn repeat_of(days_mask: i64, interval_days: i64) -> &'static str {
+    if interval_days > 1 {
+        "alternate"
+    } else if days_mask & 127 == 127 {
+        "daily"
+    } else {
+        "weekdays"
+    }
+}
+
 pub fn reminders(conn: &Connection) -> AppResult<Vec<Reminder>> {
     let mut stmt = conn.prepare(
-        "SELECT id, kind, time_of_day, enabled FROM reminder
-         ORDER BY CASE kind
+        "SELECT id, kind, time_of_day, enabled, days_mask, interval_days, custom,
+                title, message
+         FROM reminder
+         ORDER BY custom ASC, CASE kind
             WHEN 'morning' THEN 1 WHEN 'meal' THEN 2 WHEN 'workout' THEN 3
-            WHEN 'water' THEN 4 WHEN 'evening' THEN 5 ELSE 6 END",
+            WHEN 'water' THEN 4 WHEN 'evening' THEN 5 ELSE 6 END, time_of_day ASC",
     )?;
     let rows = stmt.query_map([], |r| {
         Ok((
@@ -1520,17 +1533,30 @@ pub fn reminders(conn: &Connection) -> AppResult<Vec<Reminder>> {
             r.get::<_, String>(1)?,
             r.get::<_, String>(2)?,
             r.get::<_, i64>(3)?,
+            r.get::<_, i64>(4)?,
+            r.get::<_, i64>(5)?,
+            r.get::<_, i64>(6)?,
+            r.get::<_, Option<String>>(7)?,
+            r.get::<_, Option<String>>(8)?,
         ))
     })?;
 
     let mut out = Vec::new();
     for row in rows {
-        let (id, kind, time_of_day, enabled) = row?;
+        let (id, kind, time_of_day, enabled, days_mask, interval_days, custom, title, message) =
+            row?;
         let (label, description) = reminder_copy(&kind);
+        let propio = custom != 0;
         out.push(Reminder {
             interval_based: is_interval_kind(&kind),
-            label: label.to_string(),
-            description: description.to_string(),
+            // Los propios llevan el texto que escribió la persona; los de
+            // fábrica, el que vive en el código y se puede corregir sin migrar.
+            label: title.unwrap_or_else(|| label.to_string()),
+            description: message.unwrap_or_else(|| description.to_string()),
+            custom: propio,
+            repeat: repeat_of(days_mask, interval_days).to_string(),
+            days_mask,
+            interval_days,
             id,
             kind,
             time_of_day,
@@ -1540,30 +1566,143 @@ pub fn reminders(conn: &Connection) -> AppResult<Vec<Reminder>> {
     Ok(out)
 }
 
-pub fn set_reminder(
+/// Crea un recordatorio propio. `kind` queda como "custom" para que el
+/// planificador sepa que el texto sale de la fila y no de una regla.
+pub fn add_reminder(
     conn: &Connection,
-    id: &str,
-    enabled: Option<bool>,
-    time_of_day: Option<&str>,
-) -> AppResult<()> {
-    if let Some(t) = time_of_day {
-        if chrono::NaiveTime::parse_from_str(t, "%H:%M").is_err() {
-            return Err(AppError::invalid(format!(
-                "hora no válida: {t} (usa HH:MM)"
-            )));
-        }
+    title: &str,
+    message: Option<&str>,
+    time_of_day: &str,
+    days_mask: i64,
+    interval_days: i64,
+) -> AppResult<String> {
+    let titulo = title.trim();
+    if titulo.is_empty() {
+        return Err(AppError::invalid("ponle un nombre al recordatorio"));
+    }
+    validar_horario(time_of_day, days_mask)?;
+
+    let id = new_id();
+    conn.execute(
+        "INSERT INTO reminder
+           (id, kind, time_of_day, days_mask, enabled, title, message, interval_days, custom)
+         VALUES (?1, 'custom', ?2, ?3, 1, ?4, ?5, ?6, 1)",
+        params![
+            id,
+            time_of_day,
+            days_mask,
+            titulo,
+            message.map(str::trim).filter(|m| !m.is_empty()),
+            interval_days.max(0)
+        ],
+    )?;
+    Ok(id)
+}
+
+pub fn delete_reminder(conn: &Connection, id: &str) -> AppResult<()> {
+    let n = conn.execute("DELETE FROM reminder WHERE id = ?1 AND custom = 1", [id])?;
+    if n == 0 {
+        return Err(AppError::invalid(
+            "los recordatorios de fábrica no se borran; apágalos si no los quieres",
+        ));
+    }
+    Ok(())
+}
+
+fn validar_horario(time_of_day: &str, days_mask: i64) -> AppResult<()> {
+    if chrono::NaiveTime::parse_from_str(time_of_day, "%H:%M").is_err() {
+        return Err(AppError::invalid(format!(
+            "hora no válida: {time_of_day} (usa HH:MM)"
+        )));
+    }
+    if days_mask & 127 == 0 {
+        return Err(AppError::invalid("elige al menos un día"));
+    }
+    Ok(())
+}
+
+#[derive(Debug, Default)]
+pub struct ReminderPatch<'a> {
+    pub enabled: Option<bool>,
+    pub time_of_day: Option<&'a str>,
+    pub days_mask: Option<i64>,
+    pub interval_days: Option<i64>,
+    pub title: Option<&'a str>,
+    pub message: Option<&'a str>,
+}
+
+pub fn set_reminder(conn: &Connection, id: &str, patch: ReminderPatch) -> AppResult<()> {
+    if let Some(t) = patch.time_of_day {
+        validar_horario(t, 127)?;
         conn.execute(
             "UPDATE reminder SET time_of_day = ?2 WHERE id = ?1",
             params![id, t],
         )?;
     }
-    if let Some(e) = enabled {
+    if let Some(m) = patch.days_mask {
+        if m & 127 == 0 {
+            return Err(AppError::invalid("elige al menos un día"));
+        }
+        conn.execute(
+            "UPDATE reminder SET days_mask = ?2 WHERE id = ?1",
+            params![id, m & 127],
+        )?;
+    }
+    if let Some(n) = patch.interval_days {
+        conn.execute(
+            "UPDATE reminder SET interval_days = ?2 WHERE id = ?1",
+            params![id, n.max(0)],
+        )?;
+    }
+    if let Some(t) = patch.title {
+        let titulo = t.trim();
+        if titulo.is_empty() {
+            return Err(AppError::invalid("ponle un nombre al recordatorio"));
+        }
+        conn.execute(
+            "UPDATE reminder SET title = ?2 WHERE id = ?1 AND custom = 1",
+            params![id, titulo],
+        )?;
+    }
+    if let Some(m) = patch.message {
+        conn.execute(
+            "UPDATE reminder SET message = ?2 WHERE id = ?1 AND custom = 1",
+            params![id, m.trim()],
+        )?;
+    }
+    if let Some(e) = patch.enabled {
         conn.execute(
             "UPDATE reminder SET enabled = ?2 WHERE id = ?1",
             params![id, e as i64],
         )?;
     }
     Ok(())
+}
+
+/// El ancla desde la que se cuentan los "cada N días". Se usa el arranque del
+/// reto para que "día de por medio" caiga en los días 1, 3, 5… y no dependa de
+/// cuándo se creó el recordatorio.
+fn ancla_intervalo(conn: &Connection) -> NaiveDate {
+    active_challenge(conn)
+        .ok()
+        .flatten()
+        .and_then(|c| parse_date(&c.start_date).ok())
+        .unwrap_or_else(|| NaiveDate::from_ymd_opt(2020, 1, 1).expect("fecha ancla"))
+}
+
+/// ¿Le toca sonar a este recordatorio en esta fecha?
+pub fn reminder_matches_day(conn: &Connection, r: &Reminder, fecha: NaiveDate) -> bool {
+    let bit = 1i64 << fecha.weekday().num_days_from_monday();
+    if r.days_mask & bit == 0 {
+        return false;
+    }
+    if r.interval_days > 1 {
+        let dias = (fecha - ancla_intervalo(conn)).num_days();
+        if dias.rem_euclid(r.interval_days) != 0 {
+            return false;
+        }
+    }
+    true
 }
 
 /// Recordatorios que deberían dispararse en este instante. No decide el texto:
@@ -1587,6 +1726,10 @@ pub fn due_reminders(conn: &Connection, now: NaiveDateTime) -> AppResult<Vec<Rem
     let mut out = Vec::new();
     for r in reminders(conn)? {
         if !r.enabled {
+            continue;
+        }
+        // Los de intervalo por horas (agua) no dependen del día de la semana.
+        if !r.interval_based && !reminder_matches_day(conn, &r, logical_today) {
             continue;
         }
         let last: Option<String> = conn

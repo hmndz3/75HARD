@@ -72,7 +72,7 @@ fn evaluar(app: &AppHandle) -> AppResult<Vec<Aviso>> {
             // dentro de un minuto.
             queries::mark_reminder_fired(conn, &r.id, now)?;
 
-            if let Some(aviso) = redactar(&r.kind, &vista) {
+            if let Some(aviso) = redactar(&r, &vista) {
                 avisos.push(aviso);
             }
         }
@@ -82,13 +82,27 @@ fn evaluar(app: &AppHandle) -> AppResult<Vec<Aviso>> {
 
 /// El texto de cada aviso. Devuelve `None` cuando el pilar ya está cubierto:
 /// una app que te felicita por algo que ya hiciste se vuelve ruido.
-fn redactar(kind: &str, v: &crate::db::models::TodayView) -> Option<Aviso> {
+///
+/// Los recordatorios propios no tienen esa lógica: la app no sabe qué es
+/// "sacar la basura", así que su texto sale tal cual de la fila.
+fn redactar(r: &crate::db::models::Reminder, v: &crate::db::models::TodayView) -> Option<Aviso> {
     let dia = v
         .day_number
         .map(|n| format!("Día {n}"))
         .unwrap_or_else(|| "75 HARD".to_string());
 
-    let (title, body) = match kind {
+    if r.custom {
+        return Some(Aviso {
+            title: r.label.clone(),
+            body: if r.description.trim().is_empty() {
+                dia
+            } else {
+                r.description.clone()
+            },
+        });
+    }
+
+    let (title, body) = match r.kind.as_str() {
         "morning" => {
             if v.sleep.is_some() {
                 return None;
@@ -252,12 +266,147 @@ mod tests {
     fn un_recordatorio_apagado_no_suena() {
         let db = open_in_memory().expect("base en memoria");
         db.with(|c| {
-            q::set_reminder(c, "meal", Some(false), None)?;
+            q::set_reminder(
+                c,
+                "meal",
+                q::ReminderPatch {
+                    enabled: Some(false),
+                    ..Default::default()
+                },
+            )?;
             let ids: Vec<_> = q::due_reminders(c, dt("2026-08-19 12:45"))?
                 .into_iter()
                 .map(|r| r.id)
                 .collect();
             assert!(!ids.contains(&"meal".to_string()));
+            Ok(())
+        })
+        .expect("consulta");
+    }
+
+    #[test]
+    fn respeta_los_dias_de_la_semana() {
+        let db = open_in_memory().expect("base en memoria");
+        db.with(|c| {
+            // Solo lunes: bit 0.
+            q::set_reminder(
+                c,
+                "meal",
+                q::ReminderPatch {
+                    days_mask: Some(1),
+                    ..Default::default()
+                },
+            )?;
+
+            // 2026-08-19 es miércoles, 2026-08-17 es lunes.
+            let miercoles: Vec<_> = q::due_reminders(c, dt("2026-08-19 12:45"))?
+                .into_iter()
+                .map(|r| r.id)
+                .collect();
+            assert!(
+                !miercoles.contains(&"meal".to_string()),
+                "el miércoles no toca"
+            );
+
+            let lunes: Vec<_> = q::due_reminders(c, dt("2026-08-17 12:45"))?
+                .into_iter()
+                .map(|r| r.id)
+                .collect();
+            assert!(lunes.contains(&"meal".to_string()), "el lunes sí");
+            Ok(())
+        })
+        .expect("consulta");
+    }
+
+    #[test]
+    fn dia_de_por_medio_alterna() {
+        let db = open_in_memory().expect("base en memoria");
+        db.with(|c| {
+            q::create_challenge(
+                c,
+                "Intento #1",
+                q::parse_date("2026-08-17")?,
+                75,
+                &crate::db::models::Rules::default(),
+            )?;
+            q::set_reminder(
+                c,
+                "meal",
+                q::ReminderPatch {
+                    interval_days: Some(2),
+                    ..Default::default()
+                },
+            )?;
+
+            let suena = |fecha: &str| -> bool {
+                q::due_reminders(c, dt(&format!("{fecha} 12:45")))
+                    .expect("consulta")
+                    .iter()
+                    .any(|r| r.id == "meal")
+            };
+
+            // El ancla es el arranque del reto: 17, 19, 21… sí; 18, 20… no.
+            assert!(suena("2026-08-17"));
+            assert!(!suena("2026-08-18"));
+            assert!(suena("2026-08-19"));
+            assert!(!suena("2026-08-20"));
+            Ok(())
+        })
+        .expect("consulta");
+    }
+
+    #[test]
+    fn un_recordatorio_propio_se_crea_suena_y_se_borra() {
+        let db = open_in_memory().expect("base en memoria");
+        db.with(|c| {
+            let id = q::add_reminder(
+                c,
+                "Tomar la pastilla",
+                Some("La de la noche"),
+                "20:00",
+                127,
+                0,
+            )?;
+
+            let suyo = q::reminders(c)?
+                .into_iter()
+                .find(|r| r.id == id)
+                .expect("el recordatorio propio debe estar en la lista");
+            assert!(suyo.custom);
+            assert_eq!(suyo.label, "Tomar la pastilla");
+            assert_eq!(suyo.repeat, "daily");
+
+            let ids: Vec<_> = q::due_reminders(c, dt("2026-08-19 20:30"))?
+                .into_iter()
+                .map(|r| r.id)
+                .collect();
+            assert!(ids.contains(&id), "a las 20:30 ya le tocaba");
+
+            q::delete_reminder(c, &id)?;
+            assert!(q::reminders(c)?.iter().all(|r| r.id != id));
+            Ok(())
+        })
+        .expect("consulta");
+    }
+
+    #[test]
+    fn los_de_fabrica_no_se_borran() {
+        let db = open_in_memory().expect("base en memoria");
+        db.with(|c| {
+            let err = q::delete_reminder(c, "meal").expect_err("no debe borrarse");
+            assert!(err.to_string().contains("no se borran"));
+            assert!(q::reminders(c)?.iter().any(|r| r.id == "meal"));
+            Ok(())
+        })
+        .expect("consulta");
+    }
+
+    #[test]
+    fn un_recordatorio_sin_dias_se_rechaza() {
+        let db = open_in_memory().expect("base en memoria");
+        db.with(|c| {
+            assert!(q::add_reminder(c, "Nada", None, "10:00", 0, 0).is_err());
+            assert!(q::add_reminder(c, "  ", None, "10:00", 127, 0).is_err());
             Ok(())
         })
         .expect("consulta");
@@ -282,8 +431,12 @@ mod tests {
     fn rechaza_una_hora_mal_escrita() {
         let db = open_in_memory().expect("base en memoria");
         db.with(|c| {
-            assert!(q::set_reminder(c, "meal", None, Some("25:99")).is_err());
-            assert!(q::set_reminder(c, "meal", None, Some("13:15")).is_ok());
+            let con_hora = |h: &'static str| q::ReminderPatch {
+                time_of_day: Some(h),
+                ..Default::default()
+            };
+            assert!(q::set_reminder(c, "meal", con_hora("25:99")).is_err());
+            assert!(q::set_reminder(c, "meal", con_hora("13:15")).is_ok());
             Ok(())
         })
         .expect("consulta");

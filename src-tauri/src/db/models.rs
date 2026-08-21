@@ -265,8 +265,16 @@ pub struct Reminder {
     pub description: String,
     pub time_of_day: String,
     pub enabled: bool,
-    /// Los de intervalo (agua) no se programan a una hora fija.
+    /// Los de intervalo por horas (agua) no se programan a una hora fija.
     pub interval_based: bool,
+    /// Los creados por el usuario se pueden renombrar y borrar.
+    pub custom: bool,
+    /// Un bit por día de la semana, bit 0 = lunes. 127 son todos.
+    pub days_mask: i64,
+    /// Cada cuántos días suena. 0 o 1 = todos los que permita la máscara.
+    pub interval_days: i64,
+    /// Resumen para la UI: "daily" | "alternate" | "weekdays".
+    pub repeat: String,
 }
 
 /// Las cifras del intento para la pantalla de racha rota (P14).

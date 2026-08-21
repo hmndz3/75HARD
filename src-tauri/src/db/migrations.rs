@@ -15,6 +15,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "002_reminders",
         include_str!("../../migrations/002_reminders.sql"),
     ),
+    (
+        "003_reminders_custom",
+        include_str!("../../migrations/003_reminders_custom.sql"),
+    ),
 ];
 
 pub fn run(conn: &Connection) -> AppResult<()> {

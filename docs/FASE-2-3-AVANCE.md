@@ -83,9 +83,10 @@ estilos de impresión quita la barra, los fondos y los bordes redondeados.
 
 ### Fotos de progreso
 
-Pantalla nueva en la barra lateral. Al agregar una foto **se copia a la carpeta
-de datos de la app**: si luego borras el original de tus descargas, la del reto
-sigue ahí. Comparador de antes y después eligiendo cualquier par de la lista.
+Pantalla nueva en la barra lateral. Galería agrupada por día: una o varias
+fotos por día, con el día marcado en cada grupo. Al agregar una foto **se copia
+a la carpeta de datos de la app**: si luego borras el original de tus
+descargas, la del reto sigue ahí.
 
 Las imágenes se leen como data URL en vez de exponer el protocolo de assets.
 Son dos fotos a la vez, y así no hay que abrir un canal de acceso al sistema de
@@ -137,7 +138,7 @@ resumen entero.
 
 | | Resultado |
 |---|---|
-| `cargo test --release` | **62 pasan**, 0 fallan (eran 44) |
+| `cargo test --release` | **67 pasan**, 0 fallan (eran 44) |
 | `cargo clippy --all-targets` | **0 warnings** |
 | `npm run check` | **0 errores, 0 warnings** |
 | Las 4 pantallas de gráficas | verificadas en pantalla con datos de ejemplo |
@@ -145,6 +146,7 @@ resumen entero.
 | Informe del médico | verificado en pantalla |
 | Copia cifrada | **ida y vuelta real en test**: se cifra, se cambia un dato, se restaura y vuelve el valor original |
 | Fotos | copia, listado, lectura y borrado cubiertos por tests |
+| Recordatorios | días de la semana, día de por medio, creación y borrado cubiertos por tests |
 
 **RAM**, el requisito no negociable:
 
@@ -192,6 +194,42 @@ calcular la r. Antes se ocultaba la que no llegaba al mínimo de cinco pares, y
 la pantalla se quedaba con un mensaje genérico que no distinguía entre "te
 falta registrar" y "la app está rota". Ahora cada tarjeta dice exactamente
 cuántos días con ambos datos lleva.
+
+### Recordatorios propios y control de días
+
+Los cinco de fábrica ya no son todo: se pueden **crear los tuyos** con nombre,
+mensaje y hora, y borrarlos cuando sobren. Los de fábrica solo se apagan, no se
+borran — el error lo dice en esas palabras en vez de fallar en silencio.
+
+Cada recordatorio elige **cuándo suena**: todos los días, día de por medio, o
+los días concretos que marques (L M X J V S D).
+
+Dos cosas del diseño que conviene saber:
+
+- **"Día de por medio" no es una máscara semanal.** Cae en días distintos cada
+  semana, así que va como intervalo (`interval_days`) y se cuenta desde el
+  arranque del reto: días 1, 3, 5… No desde cuándo creaste el recordatorio, que
+  sería arbitrario.
+- **El modo se recuerda en la pantalla, no en la base.** "Elegir días" con los
+  siete marcados guarda exactamente lo mismo que "todos los días", así que no se
+  puede deducir de lo guardado: al pulsarlo rebotaba solo al primero. La
+  pantalla recuerda tu elección mientras esté abierta; al volver muestra lo que
+  de verdad hace.
+
+Los recordatorios propios **no se callan solos** como los de fábrica: la app no
+sabe qué es "tomar la pastilla", así que no puede comprobar si ya lo hiciste.
+Está dicho en la propia pantalla para que no sorprenda.
+
+### Las fotos ya no son un comparador
+
+Tenías razón en que con una sola foto el "antes y después" no tenía sentido.
+Ahora es una galería: **una o varias fotos por día**, agrupadas por el día en
+que las subiste, y se pueden seleccionar varias de golpe en el diálogo. Al
+hacer clic se abren grandes, y ahí está el botón de borrar.
+
+Un detalle que costó ver: las miniaturas salían diminutas porque los botones
+del sistema de diseño llevan `height: 34px`, y eso ganaba sobre el
+`aspect-ratio` de la celda.
 
 ### Y una que resultó no ser un bug
 

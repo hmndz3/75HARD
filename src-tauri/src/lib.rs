@@ -67,6 +67,8 @@ pub fn run() {
             commands::day::get_broken_streak,
             commands::reminders::get_reminders,
             commands::reminders::set_reminder,
+            commands::reminders::add_reminder,
+            commands::reminders::delete_reminder,
             commands::stats::get_sleep_stats,
             commands::stats::get_workout_stats,
             commands::stats::get_glucose_stats,

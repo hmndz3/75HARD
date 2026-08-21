@@ -171,6 +171,8 @@ export interface History {
   heatmap: HeatmapCell[];
 }
 
+export type Repeat = "daily" | "alternate" | "weekdays";
+
 export interface Reminder {
   id: string;
   kind: string;
@@ -178,7 +180,15 @@ export interface Reminder {
   description: string;
   timeOfDay: string;
   enabled: boolean;
+  /** Los de intervalo por horas (agua) no tienen hora fija. */
   intervalBased: boolean;
+  /** Los creados por ti se pueden renombrar y borrar. */
+  custom: boolean;
+  /** Un bit por día de la semana, bit 0 = lunes. 127 son todos. */
+  daysMask: number;
+  /** Cada cuántos días. 0 o 1 = todos los que permita la máscara. */
+  intervalDays: number;
+  repeat: Repeat;
 }
 
 export interface ChallengeTotals {

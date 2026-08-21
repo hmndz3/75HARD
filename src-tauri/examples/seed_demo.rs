@@ -25,7 +25,24 @@ fn main() {
         .and_then(|i| std::env::args().nth(i + 1))
         .and_then(|v| v.parse().ok());
 
+    // `--foto <ruta>` mete una imagen de progreso sin pasar por el diálogo
+    // nativo, para poder revisar la galería.
+    let foto: Option<String> = std::env::args()
+        .position(|a| a == "--foto")
+        .and_then(|i| std::env::args().nth(i + 1));
+
     let database = db::open(&path).expect("abrir la base de demostración");
+    if let Some(ruta) = foto {
+        let id = app75hard_lib::commands::data::guardar_foto(
+            &database,
+            &Local::now().date_naive().format("%Y-%m-%d").to_string(),
+            std::path::Path::new(&ruta),
+        )
+        .expect("guardar la foto");
+        println!("foto agregada: {id}");
+        return;
+    }
+
     database
         .with(|c| {
             if let Some(n) = olvidar {

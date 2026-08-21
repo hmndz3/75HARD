@@ -81,8 +81,26 @@ export const getBrokenStreak = (date?: string) =>
 // ------------------------------------------------------------ recordatorios
 
 export const getReminders = () => call<Reminder[]>("get_reminders");
-export const setReminder = (args: { id: string; enabled?: boolean; timeOfDay?: string }) =>
-  call<Reminder[]>("set_reminder", args);
+
+export const setReminder = (args: {
+  id: string;
+  enabled?: boolean;
+  timeOfDay?: string;
+  daysMask?: number;
+  intervalDays?: number;
+  title?: string;
+  message?: string;
+}) => call<Reminder[]>("set_reminder", args);
+
+export const addReminder = (args: {
+  title: string;
+  message?: string;
+  timeOfDay: string;
+  daysMask: number;
+  intervalDays?: number;
+}) => call<Reminder[]>("add_reminder", args);
+
+export const deleteReminder = (id: string) => call<Reminder[]>("delete_reminder", { id });
 
 // --------------------------------------------------------- días sin registrar
 
